@@ -5,6 +5,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.core.FileAppender;
 import com.iscas.bean.*;
+import com.iscas.bean.assertion.Assertion;
 import com.iscas.bean.fault.Abort;
 import com.iscas.bean.fault.Delay;
 import com.iscas.bean.fault.Fault;
@@ -703,7 +704,7 @@ public class Heuristic {
     }
 
     private List<Assertion> test() {
-        asdf
+
     }
 
     private void injectDelay(int duration) throws InterruptedException {
@@ -720,7 +721,7 @@ public class Heuristic {
     private void injectAbort(int code) throws InterruptedException {
         Injector injector = new Injector();
         for (String service : this.currentIP) {
-            Fault abort = new Abort(service, "v1", null, 100, code);
+            Fault abort = new Abort(service, "v1", 100, code);
             injector.inject(abort);
 
             this.currentFaults.add(abort);

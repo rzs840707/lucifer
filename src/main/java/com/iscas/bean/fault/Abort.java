@@ -4,8 +4,8 @@ public class Abort extends Fault {
     private int percent;
     private int code;
 
-    public Abort(String tarService, String tarVersion, String srcService, int percent, int code) {
-        super(tarService, tarVersion, srcService);
+    public Abort(String tarService, String tarVersion, int percent, int code) {
+        super(tarService, tarVersion);
         this.percent = percent;
         this.code = code;
     }

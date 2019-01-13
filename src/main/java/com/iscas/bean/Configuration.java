@@ -1,5 +1,7 @@
 package com.iscas.bean;
 
+import com.iscas.bean.assertion.Assertion;
+
 import java.util.List;
 
 public class Configuration {

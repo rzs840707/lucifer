@@ -1,7 +1,5 @@
 package com.iscas.bean.result;
 
-import com.iscas.bean.fault.Fault;
-
 public class BulkHeadResult {
     private String id;
     private int injectTime;

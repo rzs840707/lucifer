@@ -1,10 +1,5 @@
 package com.iscas.bean.result;
 
-import com.iscas.bean.Trace;
-import com.iscas.bean.fault.Fault;
-
-import java.util.List;
-
 public class CircuitBreakResult {
     private String id;
     private int injectTime;

@@ -1,4 +1,4 @@
-package com.iscas.bean;
+package com.iscas.bean.assertion;
 
 public class Assertion {
     private String name;
