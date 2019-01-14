@@ -1,7 +1,6 @@
 package com.iscas.bean;
 
-import com.iscas.bean.assertion.Assertion;
-
+import java.util.ArrayList;
 import java.util.List;
 
 public class Configuration {
@@ -14,8 +13,7 @@ public class Configuration {
     private int traceDetectSampleInterval; // seconds
 
     // assertions
-    private List<Assertion> assertions; // 用户响应是否正常的判断依据
-    private String assertionsUserDef; // 用户响应是否正常的判断依据(用户定义的python文件)
+    private List<String> assertionsUserDef; // 用户响应是否正常的判断依据(用户定义的python文件)
 
     // timeout detection
     private long timeoutDetectionDuration; // seconds
@@ -43,6 +41,44 @@ public class Configuration {
     private int bulkheadWindowSize2;
     private int bulkheadInterval2;
     private double bulkheadThreshold;
+
+    public Configuration() {
+        // 设置trace探测阶段
+        this.traceDetectDuration = 60;
+        this.traceDetectSampleBatch = 20;
+        this.traceDetectSampleInterval = 3;
+
+        // 设置断言验证
+        this.assertionsUserDef = new ArrayList<>();
+        this.assertionsUserDef.add("assertions/productpage.py");
+
+        // 设置超时
+        this.timeoutDetectionDuration = 5 * 60;
+        this.timeoutSampleBatch = 20;
+        this.timeoutSampleInterval = 3;
+
+        // 设置重试
+        this.retryDetectionDuration = 5 * 60;
+        this.retrySampleBatch = 20;
+        this.retrySampleInterval = 3;
+
+        //设置熔断
+        this.circuitbreakerLocateDuration = 5 * 60;
+        this.circuitbreakerLocateSampleBatch = 20;
+        this.circuitbreakerLocateInterval = 3;
+        this.circuitbreakerHalfStateDuration = 3;
+        this.circuitbreakerQPSWindowSize = 3;
+        this.circuitbreakerInterval = 1;
+
+        //设置船舱
+        this.bulkheadDuration1 = 3 * 60;
+        this.bulkheadWindowSize1 = 3;
+        this.bulkheadInterval1 = 1;
+        this.bulkheadDuration2 = 3 * 60;
+        this.bulkheadWindowSize2 = 3;
+        this.bulkheadInterval2 = 1;
+        this.bulkheadThreshold = 0.4;
+    }
 
     public String[] getServices() {
         return services;
@@ -74,14 +110,6 @@ public class Configuration {
 
     public void setTraceDetectSampleInterval(int traceDetectSampleInterval) {
         this.traceDetectSampleInterval = traceDetectSampleInterval;
-    }
-
-    public List<Assertion> getAssertions() {
-        return assertions;
-    }
-
-    public String getAssertionsUserDef() {
-        return assertionsUserDef;
     }
 
     public long getTimeoutDetectionDuration() {
@@ -158,5 +186,9 @@ public class Configuration {
 
     public double getBulkheadThreshold() {
         return bulkheadThreshold;
+    }
+
+    public List<String> getAssertionsUserDef() {
+        return assertionsUserDef;
     }
 }

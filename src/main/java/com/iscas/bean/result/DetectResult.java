@@ -1,6 +1,6 @@
 package com.iscas.bean.result;
 
-import com.iscas.bean.assertion.Assertion;
+import com.iscas.bean.Assertion;
 
 import java.util.List;
 

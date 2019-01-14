@@ -4,8 +4,11 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.core.FileAppender;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.iscas.bean.*;
-import com.iscas.bean.assertion.Assertion;
+import com.iscas.bean.Assertion;
 import com.iscas.bean.fault.Abort;
 import com.iscas.bean.fault.Delay;
 import com.iscas.bean.fault.Fault;
@@ -14,13 +17,16 @@ import com.iscas.service.Injector;
 import com.iscas.service.Jaeger;
 import com.iscas.service.Telemetry;
 import com.iscas.service.TraceTracker;
+import com.iscas.util.Cmd;
+import com.iscas.util.FileUtil;
+import com.iscas.util.Time;
 import javafx.util.Pair;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-import com.iscas.util.Time;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,9 +37,10 @@ public class Heuristic {
     public static int times = 0;
 
     @Autowired
-    public Heuristic(Configuration configuration, SimpMessagingTemplate simpMessagingTemplate) {
+    public Heuristic(Configuration configuration, SimpMessagingTemplate simpMessagingTemplate, RestTemplate restTemplate) {
         this.configuration = configuration;
         this.logPusher = simpMessagingTemplate;
+        this.restTemplate = restTemplate;
     }
 
     // configuration
@@ -61,22 +68,25 @@ public class Heuristic {
     // utils
     private Logger logger;
     private SimpMessagingTemplate logPusher;
+    private RestTemplate restTemplate;
+
 
     public void run() {
         init();
 
-        sampleTraces();
+        try {
+            //抽样
+            sampleTraces();
 
-        // 探测
-        for (Trace t : this.tracePool) {
-            this.currentTracePool = new ArrayList<>();
-            this.currentTracePool.add(t);
+            // 探测
+            for (Trace t : this.tracePool) {
+                this.currentTracePool = new ArrayList<>();
+                this.currentTracePool.add(t);
 
-            try {
                 detect();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
         clean();
@@ -103,10 +113,10 @@ public class Heuristic {
                 injectAbort(500);
 
                 // 测试响应
-                List<Assertion> failedAssertions = test();
+                Assertion failedAssertion = test();
 
                 // 更新
-                if (failedAssertions.isEmpty()) {
+                if (failedAssertion == null) {
                     updateTraces();
                     deleteFaults();
                 }
@@ -144,7 +154,7 @@ public class Heuristic {
         this.currentFaults = new ArrayList<>();
     }
 
-    private void sampleTraces() {
+    private void sampleTraces() throws InterruptedException {
         int sampleBatch = this.configuration.getTraceDetectSampleBatch();
         long duration = this.configuration.getTraceDetectDuration();
         int interval = this.configuration.getTraceDetectSampleInterval();
@@ -154,12 +164,15 @@ public class Heuristic {
 
         Map<Integer, Trace> traces = new HashMap<>();
 
-        TraceTracker tracker = new Jaeger();
+        TraceTracker tracker = new Jaeger(this.restTemplate);
 
         // sample traces
         for (long curTime = Time.getCurTimeStampMs(); curTime < endTime; curTime = Time.getCurTimeStampMs()) {
+            // sleep for interval
+            Thread.sleep(interval * 1000);
+
             // sample
-            List<Span> spanTrees = tracker.sample(sampleBatch);
+            List<Span> spanTrees = tracker.sample(sampleBatch, interval);
 
             // convert and save
             for (Span root : spanTrees) {
@@ -176,20 +189,13 @@ public class Heuristic {
                 } else
                     traces.put(hashCode, t);
             }
-
-            // sleep for interval
-            try {
-                Thread.sleep(interval * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
 
         this.tracePool = new ArrayList<>(traces.values());
 
     }
 
-    private void updateTraces() {
+    private void updateTraces() throws InterruptedException {
         int sampleBatch = this.configuration.getTraceDetectSampleBatch();
         long duration = 30; // 抽样30秒
         int interval = this.configuration.getTraceDetectSampleInterval();
@@ -202,12 +208,14 @@ public class Heuristic {
         for (Trace t : this.currentTracePool)
             urls.addAll(Arrays.asList(t.getUrls()));
 
-        TraceTracker tracker = new Jaeger();
+        TraceTracker tracker = new Jaeger(this.restTemplate);
 
         // sample traces
         for (long curTime = Time.getCurTimeStampMs(); curTime < endTime; curTime = Time.getCurTimeStampMs()) {
+            Thread.sleep(interval * 1000);
+
             // sample
-            List<Span> spanTrees = tracker.sample(sampleBatch);
+            List<Span> spanTrees = tracker.sample(sampleBatch, interval);
             for (Span root : spanTrees) {
                 Trace t = spanToTrace(root);
                 String url = t.getUrls()[0];
@@ -236,7 +244,7 @@ public class Heuristic {
     }
 
     private void analysisTimeout() throws InterruptedException {
-        TraceTracker tracker = new Jaeger();
+        TraceTracker tracker = new Jaeger(this.restTemplate);
 
         // 注入delay故障
         this.injectDelay(20);
@@ -323,11 +331,12 @@ public class Heuristic {
     }
 
     private void analysisCircuitBreaker() throws InterruptedException {
-        TraceTracker tracker = new Jaeger();
+        TraceTracker tracker = new Jaeger(this.restTemplate);
         Span normalSpanTree = null;
         // 对正常情况下调用链采样
         while (normalSpanTree == null) {
-            List<Span> roots = tracker.sample(10);
+            Thread.sleep(10 * 1000);
+            List<Span> roots = tracker.sample(10, 10);
             for (Span root : roots)
                 if (this.currentUrls.contains(root.getUrl())) {
                     normalSpanTree = root;
@@ -416,7 +425,7 @@ public class Heuristic {
             startTime = Time.getCurTimeStampMs();
             endTime = startTime + duration2 * 1000;
 
-            Telemetry monitor = new Telemetry();
+            Telemetry monitor = new Telemetry(this.restTemplate);
             Map<Pair<String, String>, Double> result = new HashMap<>();
             //探测半开状态
             for (long currentTime = Time.getCurTimeStampMs(); currentTime < endTime; currentTime = Time.getCurTimeStampMs()) {
@@ -457,7 +466,7 @@ public class Heuristic {
     }
 
     private void analysisRery() throws InterruptedException {
-        TraceTracker tracker = new Jaeger();
+        TraceTracker tracker = new Jaeger(this.restTemplate);
 
         // 注入delay故障
         this.injectAbort(500);
@@ -533,7 +542,8 @@ public class Heuristic {
 
     private void analysisBulkHead() throws InterruptedException {
         // 确定注入点的父节点与兄弟节点所构成的边集合
-        Graph graph = new Telemetry().queryGraph();
+        Thread.sleep(5 * 1000);
+        Graph graph = new Telemetry(this.restTemplate).queryGraph(5);
         List<Pair<String, String>> edges = graph.getEdges();
         // (1) 确定父节点集合
         Set<String> fatherServices = new HashSet<>();
@@ -576,7 +586,7 @@ public class Heuristic {
         long startTime = Time.getCurTimeStampMs();
         long endTime = startTime + duration1 * 1000;
 
-        Telemetry monitor = new Telemetry();
+        Telemetry monitor = new Telemetry(this.restTemplate);
         Map<Pair<String, String>, Double> normal = new HashMap<>();
         // 获取正常数据
         for (long currentTime = Time.getCurTimeStampMs(); currentTime < endTime; currentTime = Time.getCurTimeStampMs()) {
@@ -703,14 +713,76 @@ public class Heuristic {
         this.IPS = r;
     }
 
-    private List<Assertion> test() {
+    private Assertion test() throws InterruptedException {
 
+        int sampleBatch = 10;
+        long duration = 30;
+        int interval = 3;
+
+        long startTime = Time.getCurTimeStampMs();
+        long endTime = startTime + duration * 1000;
+
+        // 当前测试的接口集合
+        Set<String> urls = new HashSet<>();
+        for (Trace t : this.currentTracePool)
+            urls.addAll(Arrays.asList(t.getUrls()));
+
+        TraceTracker tracker = new Jaeger(this.restTemplate);
+
+        // 根据内置条件验证结果
+        for (long curTime = Time.getCurTimeStampMs(); curTime < endTime; curTime = Time.getCurTimeStampMs()) {
+            Thread.sleep(interval * 1000);
+            List<Span> spanTrees = tracker.sample(sampleBatch, interval);
+
+            for (Span root : spanTrees) {
+                // 过滤无关trace
+                if (!urls.contains(root.getUrl()))
+                    continue;
+
+                // 验证httpcode
+                if (root.isErr() || Integer.valueOf(root.getCode()) >= 300)
+                    return new Assertion("httpcode", root.getUrl(), "返回码为" + root.getCode());
+
+                // 验证响应时间
+                if (root.getDuration() / 1000 >= 10)
+                    return new Assertion("responseTime", root.getUrl(), "响应时间为" + root.getDuration() / 1000);
+            }
+        }
+
+        // 根据用户定义的验证脚本验证
+        String params = StringUtils.join(urls.iterator(), ',');
+        for (String assertionFile : this.configuration.getAssertionsUserDef()) {
+            if (FileUtil.existFile(assertionFile)) {
+                try {
+                    //执行用户脚本
+                    String str = Cmd.execForStd("python " + assertionFile + " -l " + params);
+
+                    //验证结果
+                    JsonArray results = new JsonParser().parse(str).getAsJsonArray();
+                    if (results.size() == 0)
+                        continue;
+                    // [{"name":"...", "url":"...", "message": "..."}]
+                    for (int i = 0; i < results.size(); ++i) {
+                        JsonObject r = results.get(i).getAsJsonObject();
+                        String url = r.get("url").getAsString();
+                        if (urls.contains(url))
+                            return new Assertion(r.get("name").getAsString(),
+                                    url, r.get("message").getAsString());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("用户上传的验证脚本有问题");
+                }
+            }
+        }
+
+        return null;
     }
 
     private void injectDelay(int duration) throws InterruptedException {
         Injector injector = new Injector();
         for (String service : this.currentIP) {
-            Fault delay = new Delay(service, "v1", null, 100, duration);
+            Fault delay = new Delay(service, "v1", 100, duration);
             injector.inject(delay);
 
             this.currentFaults.add(delay);

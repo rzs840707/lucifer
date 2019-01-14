@@ -2,7 +2,7 @@ package com.iscas.service;
 
 import com.google.gson.*;
 import com.iscas.bean.fault.Fault;
-import com.iscas.util.CmdUtil;
+import com.iscas.util.Cmd;
 
 public class Injector {
     public void inject(Fault fault) {
@@ -27,7 +27,7 @@ public class Injector {
             http.addAll(rules);
 
         // 注入
-        CmdUtil.execWithPipe("echo '" + root.toString() + "' | kubectl apply -f -");
+        Cmd.execWithPipe("echo '" + root.toString() + "' | kubectl apply -f -");
     }
 
     public void delete(Fault fault) {
@@ -58,13 +58,13 @@ public class Injector {
             JsonObject spec = new JsonObject();
             spec.add("hosts", new JsonParser().parse("[\"" + fault.getTarService() + "\"]"));
             spec.add("http", rules);
-            CmdUtil.execWithPipe("echo '" + root.toString() + "' | kubectl apply -f -");
+            Cmd.execWithPipe("echo '" + root.toString() + "' | kubectl apply -f -");
         }
 
     }
 
     private JsonArray queryRules(String name) {
-        String str = CmdUtil.execForStd("kubectl get virtualservice " + name + " -o json");
+        String str = Cmd.execForStd("kubectl get virtualservice " + name + " -o json");
         if (str.startsWith("Error from server (NotFound):"))
             return null;
         JsonObject root = new JsonParser().parse(str).getAsJsonObject();
@@ -72,6 +72,6 @@ public class Injector {
     }
 
     public void deleteVirtualservice(String name) {
-        CmdUtil.exec("kubectl delete virtualservice " + name);
+        Cmd.exec("kubectl delete virtualservice " + name);
     }
 }

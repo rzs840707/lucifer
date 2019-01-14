@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class CmdUtil {
+public class Cmd {
 
     public static boolean exec(String cmd) {
         boolean success = true;
