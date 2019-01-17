@@ -49,4 +49,8 @@ public class Trace {
         Arrays.sort(services);
         this.services = services;
     }
+
+    public int getCount() {
+        return count;
+    }
 }

@@ -16,4 +16,16 @@ public class Graph {
     public List<Pair<String, String>> getEdges() {
         return edges;
     }
+
+    public List<String> getNodes() {
+        return nodes;
+    }
+
+    public void setNodes(List<String> nodes) {
+        this.nodes = nodes;
+    }
+
+    public void setEdges(List<Pair<String, String>> edges) {
+        this.edges = edges;
+    }
 }

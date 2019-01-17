@@ -19,4 +19,60 @@ public class TimeoutResult {
         this.message = message;
         this.timestamp = timestamp;
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public int getInjectTime() {
+        return injectTime;
+    }
+
+    public void setInjectTime(int injectTime) {
+        this.injectTime = injectTime;
+    }
+
+    public String getSrcName() {
+        return srcName;
+    }
+
+    public void setSrcName(String srcName) {
+        this.srcName = srcName;
+    }
+
+    public String getTargetName() {
+        return targetName;
+    }
+
+    public void setTargetName(String targetName) {
+        this.targetName = targetName;
+    }
+
+    public double getThreshold() {
+        return threshold;
+    }
+
+    public void setThreshold(double threshold) {
+        this.threshold = threshold;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
 }

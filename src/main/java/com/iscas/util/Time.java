@@ -8,6 +8,7 @@ import java.util.Date;
 public class Time {
 
     public final static String pattern = "yyyy-MM-dd HH:mm:ss:SSS";
+    public final static String pattern1 = "dd HH:mm:ss";
 
     public static long getCurTimeStampMs() {
         return Calendar.getInstance().getTimeInMillis();
@@ -28,5 +29,11 @@ public class Time {
         SimpleDateFormat format = new SimpleDateFormat(pattern);
         return format.format(d);
 
+    }
+
+    public static String getCurTimeStr(String pattern){
+        Date curDate = Calendar.getInstance().getTime();
+        DateFormat df = new SimpleDateFormat(pattern);
+        return df.format(curDate);
     }
 }

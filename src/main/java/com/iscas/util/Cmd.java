@@ -60,6 +60,22 @@ public class Cmd {
         return std;
     }
 
+    public static String execForErr(String cmd) {
+        Runtime rt = Runtime.getRuntime();
+        String std = null;
+        try {
+            Process p = rt.exec(cmd);
+            p.waitFor();
+            std = readStream(p.getErrorStream());
+            String error = readStream(p.getInputStream());
+            if (error.length() > 0)
+                System.out.println(error);
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
+        return std;
+    }
+
     public static String execForStdWithPipe(String cmd) {
         Runtime rt = Runtime.getRuntime();
         String std = null;

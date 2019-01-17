@@ -20,4 +20,36 @@ public class RetryResult {
         this.message = message;
         this.timestamp = timestamp;
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public int getInjectTime() {
+        return injectTime;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public String getSrcName() {
+        return srcName;
+    }
+
+    public String getTargetName() {
+        return targetName;
+    }
+
+    public int getThreshold() {
+        return threshold;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
 }

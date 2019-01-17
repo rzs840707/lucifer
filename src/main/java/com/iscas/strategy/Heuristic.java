@@ -21,13 +21,16 @@ import com.iscas.util.Cmd;
 import com.iscas.util.FileUtil;
 import com.iscas.util.Time;
 import javafx.util.Pair;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,25 +48,26 @@ public class Heuristic {
 
     // configuration
     private Configuration configuration;
+    private boolean debug = false;
 
     // context
     private String id;
     private String startTime;
-    private List<Trace> tracePool;
-    private List<Trace> currentTracePool;
-    private Set<String> currentUrls;
-    private List<String[]> IPS;
+    private volatile List<Trace> tracePool;
+    private volatile List<Trace> currentTracePool;
+    private volatile Set<String> currentUrls;
+    private volatile List<String[]> IPS;
     private String[] currentIP;
     private List<Fault> currentFaults;
-    private int currentIPIndex;
     private int injectTimes;
     private List<DetectResult> rs;
-    private List<TimeoutResult> tors;
-    private List<CircuitBreakResult> cbrs;
-    private List<RetryResult> rrs;
-    private List<BulkHeadResult> bhrs;
+    private volatile List<TimeoutResult> tors;
+    private volatile List<CircuitBreakResult> cbrs;
+    private volatile List<RetryResult> rrs;
+    private volatile List<BulkHeadResult> bhrs;
     private Set<String> executedIPS;
     private Set<String> failedIPS;
+    private volatile boolean stop;
 
     // utils
     private Logger logger;
@@ -72,65 +76,45 @@ public class Heuristic {
 
 
     public void run() {
+        pushLog("自动探测流程开始");
+        System.out.println("自动探测流程开始");
         init();
+        this.log("参数初始化完毕");
 
         try {
             //抽样
+            this.log("抽样正常调用链");
             sampleTraces();
+            this.log("调用链抽样完毕");
+
+            if (stop)
+                return;
 
             // 探测
+            this.log("开始对每个trace探测");
             for (Trace t : this.tracePool) {
+                if (stop)
+                    break;
+
                 this.currentTracePool = new ArrayList<>();
                 this.currentTracePool.add(t);
+                this.log("当前tracepool为" + ArrayUtils.toString(t.getServices()));
 
+                this.log("开始对当前的tracepool进行探测");
                 detect();
+                this.log("对当前tracepool探测结束");
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
+        this.log("清理中");
         clean();
-    }
-
-    public void detect() throws InterruptedException {
-        this.executedIPS = new HashSet<>();
-        this.failedIPS = new HashSet<>();
-
-        while (true) {
-            // 求解IPS
-            this.IPS = new SAT().sat(this.currentTracePool);
-            filterIPS();
-            if (this.IPS.isEmpty())
-                break;
-
-            // 逐个探测
-            for (String[] IP : this.IPS) {
-                this.currentIP = IP;
-                this.injectTimes++;
-                Injector injector = new Injector();
-
-                // 注入故障
-                injectAbort(500);
-
-                // 测试响应
-                Assertion failedAssertion = test();
-
-                // 更新
-                if (failedAssertion == null) {
-                    updateTraces();
-                    deleteFaults();
-                }
-                // 分析
-                else {
-                    deleteFaults();
-                    analysis();
-                }
-            }
-        }
+        System.out.println("清理完毕，探测流程完全结束");
+        pushLog("清理完毕，探测流程完全结束");
     }
 
     private void init() {
-
         this.id = "detect_" + (++Heuristic.times);
 
         // create logger
@@ -138,11 +122,16 @@ public class Heuristic {
         FileAppender fileAppender = new FileAppender();
         fileAppender.setImmediateFlush(true);
         fileAppender.setContext(loggerContext);
-        fileAppender.setFile(this.id + ".log");
-        fileAppender.setName(this.id + ".log");
+        try {
+            fileAppender.setFile(ResourceUtils.getFile("classpath:static/mylogs").getAbsolutePath() + "/"
+                    + this.id + ".log");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        fileAppender.setName(this.id + ".tmp");
         PatternLayoutEncoder encoder = new PatternLayoutEncoder();
         encoder.setContext(loggerContext);
-        encoder.setPattern("%d{yyyy-MM-dd HH:mm:ss.SSS} %5p 18737 --- [%t] %-40.40logger{39} : %m%n%wEx");
+        encoder.setPattern("%d{yyyy-MM-dd HH:mm:ss.SSS} %5p 18737 --- [%t] %-10.10logger{10} : %m%n%wEx");
         encoder.start();
         fileAppender.setEncoder(encoder);
         fileAppender.start();
@@ -152,29 +141,136 @@ public class Heuristic {
         this.startTime = Time.getCurTimeStr();
         this.injectTimes = 0;
         this.currentFaults = new ArrayList<>();
+        this.tors = new ArrayList<>();
+        this.rrs = new ArrayList<>();
+        this.cbrs = new ArrayList<>();
+        this.bhrs = new ArrayList<>();
+        this.rs = new ArrayList<>();
+        this.stop = false;
+    }
+
+    private void detect() throws InterruptedException {
+        this.executedIPS = new HashSet<>();
+        this.failedIPS = new HashSet<>();
+
+        while (true) {
+            if (stop)
+                return;
+
+            // 求解IPS
+            this.log("约束求解");
+            this.IPS = new SAT().sat(this.currentTracePool);
+            this.log("求解结果为:" + this.IPS2str());
+
+            if (stop)
+                break;
+
+            //过滤IPS
+            this.log("开始过滤IPS");
+            filterIPS();
+            this.log("结束过滤IPS");
+            if (this.IPS.isEmpty()) {
+                this.log("IPS为空，结束对于当前tracePool的探测");
+                break;
+            } else
+                this.log("待测故障注入点集合为" + this.IPS2str());
+
+            if (stop)
+                return;
+
+            // 更新当前的urls
+            this.currentUrls = new HashSet<>();
+            for (Trace t : this.currentTracePool)
+                this.currentUrls.addAll(Arrays.asList(t.getUrls()));
+            this.log("当前的接口集合为" + ArrayUtils.toString(this.currentUrls));
+
+            if (stop)
+                return;
+
+            // 逐个探测
+            this.log("开始对每个故障注入点探测");
+            for (String[] IP : this.IPS) {
+                if (stop)
+                    return;
+
+                this.currentIP = IP;
+                this.injectTimes++;
+                this.log("当前为第" + this.injectTimes + "次探测");
+
+                // 标记已经执行过
+                Arrays.sort(this.currentIP);
+                String token = StringUtils.join(this.currentIP, ";");
+                this.executedIPS.add(token);
+                this.log("开始对" + token + "的探测");
+
+                if (stop)
+                    return;
+
+                // 注入故障
+                this.log("注入500丢包");
+                injectAbort(500);
+                this.log("注入完毕");
+
+                if (stop)
+                    return;
+
+                // 测试响应
+                this.log("验证断言");
+                Assertion failedAssertion = test();
+                this.log("验证完毕");
+
+                if (stop)
+                    return;
+
+                // 更新
+                if (failedAssertion == null) {
+                    this.log("无异常，开始更新调用链");
+                    updateTraces();
+                    this.log("更新完毕，删除故障");
+                    deleteFaults();
+                    this.log("删除故障完毕");
+                }
+                // 分析
+                else {
+                    this.rs.add(new DetectResult(this.id, this.injectTimes, failedAssertion.toString(), Time.getCurTimeStr()));
+                    this.failedIPS.add(token);
+
+                    this.log("删除故障");
+                    deleteFaults();
+                    this.log("开始模式分析");
+                    analysis();
+                    this.log("模式分析结束");
+                }
+            }
+            this.log("对当前IPS探测结束");
+        }
     }
 
     private void sampleTraces() throws InterruptedException {
         int sampleBatch = this.configuration.getTraceDetectSampleBatch();
         long duration = this.configuration.getTraceDetectDuration();
         int interval = this.configuration.getTraceDetectSampleInterval();
+        this.log("参数：持续" + duration + "秒，间隔为" + interval + "秒，抽样数量为" + sampleBatch + "条");
 
         long startTime = Time.getCurTimeStampMs();
         long endTime = startTime + duration * 1000;
-
         Map<Integer, Trace> traces = new HashMap<>();
-
         TraceTracker tracker = new Jaeger(this.restTemplate);
-
+        this.log("采样中");
         // sample traces
         for (long curTime = Time.getCurTimeStampMs(); curTime < endTime; curTime = Time.getCurTimeStampMs()) {
-            // sleep for interval
-            Thread.sleep(interval * 1000);
 
-            // sample
+            if (this.stop)
+                break;
+
+            this.log("等待" + interval + "秒,zipkin抓取中");
+            if (!debug)
+                Thread.sleep(interval * 1000);
+
+            this.log("查询中");
             List<Span> spanTrees = tracker.sample(sampleBatch, interval);
 
-            // convert and save
+            this.log("解析中");
             for (Span root : spanTrees) {
                 Trace t = spanToTrace(root);
                 int hashCode = t.hashCode();
@@ -189,10 +285,14 @@ public class Heuristic {
                 } else
                     traces.put(hashCode, t);
             }
+
+            // 测试过程中只执行一轮
+            if (debug)
+                break;
         }
 
         this.tracePool = new ArrayList<>(traces.values());
-
+        this.log("共收集到" + this.tracePool.size() + "条不同trace");
     }
 
     private void updateTraces() throws InterruptedException {
@@ -203,50 +303,79 @@ public class Heuristic {
         long startTime = Time.getCurTimeStampMs();
         long endTime = startTime + duration * 1000;
 
-        // 当前测试的接口集合
-        Set<String> urls = new HashSet<>();
-        for (Trace t : this.currentTracePool)
-            urls.addAll(Arrays.asList(t.getUrls()));
-
         TraceTracker tracker = new Jaeger(this.restTemplate);
 
         // sample traces
+        this.log("参数：持续" + duration + "秒，间隔为" + interval + "秒，抽样数量为" + sampleBatch + "条");
+        Set<String> tokens = new HashSet<>(); // 已经添加的
         for (long curTime = Time.getCurTimeStampMs(); curTime < endTime; curTime = Time.getCurTimeStampMs()) {
-            Thread.sleep(interval * 1000);
+            if (!debug) {
+                this.log("等待" + interval + "秒");
+                Thread.sleep(interval * 1000);
+            }
 
             // sample
+            this.log("抽样调用链");
             List<Span> spanTrees = tracker.sample(sampleBatch, interval);
+
+            this.log("分析");
             for (Span root : spanTrees) {
                 Trace t = spanToTrace(root);
                 String url = t.getUrls()[0];
-                if (urls.contains(url)) {
-                    List<String> services = Arrays.asList(t.getServices());
+                if (this.currentUrls.contains(url)) {
+                    List<String> services = new ArrayList<>(Arrays.asList(t.getServices()));
                     for (String exService : this.currentIP)
                         services.remove(exService);
 
                     if (services.size() > 0) {
+                        Collections.sort(services);
+                        String token = StringUtils.join(services.iterator(), ';');
+                        // 不添加重复的trace
+                        if (tokens.contains(token))
+                            continue;
+
+                        // 添加新的trace
                         t.setServices(services.toArray(new String[0]));
                         this.currentTracePool.add(t);
+                        tokens.add(token);
+                        this.log("加入新的trace" + ArrayUtils.toString(t.getServices()));
                     }
                 }
             }
+
+            if (debug)
+                break;
         }
     }
 
     private void analysis() throws InterruptedException {
-        this.currentUrls = new HashSet<>();
-        for (Trace t : this.currentTracePool)
-            this.currentUrls.addAll(Arrays.asList(t.getUrls()));
+        if (stop)
+            return;
+        this.log("开始超时模式分析");
         analysisTimeout();
+        this.log("超时模式分析结束");
+        if (stop)
+            return;
+        this.log("开始重试模式分析");
         analysisRery();
+        this.log("重试模式分析结束");
+        if (stop)
+            return;
+        this.log("开始船舱模式分析");
         analysisBulkHead();
+        this.log("船舱模式分析结束");
+        if (stop)
+            return;
+        this.log("开始熔断模式分析");
         analysisCircuitBreaker();
+        this.log("熔断模式分析结束");
     }
 
     private void analysisTimeout() throws InterruptedException {
         TraceTracker tracker = new Jaeger(this.restTemplate);
 
         // 注入delay故障
+        this.log("注入20秒超时");
         this.injectDelay(20);
 
         // 参数
@@ -256,14 +385,20 @@ public class Heuristic {
         long startTime = Time.getCurTimeStampMs();
         long endTime = startTime + duration * 1000;
 
+        this.log("参数：持续" + duration + "秒，间隔为" + interval + "秒，抽样数量为" + sampleBatch + "条");
         // 探测
-        Map<Pair<String, String>, Double> responseTimeTotal = new HashMap<>();
         for (long currentTime = Time.getCurTimeStampMs(); currentTime < endTime; currentTime = Time.getCurTimeStampMs()) {
-            Map<Pair<String, String>, Long> spanTimeSum = new HashMap<>();
-            Map<Pair<String, String>, Integer> spanCounter = new HashMap<>();
-            List<Span> roots = tracker.sampleErr(sampleBatch, Math.min(interval, 5));
+            // 暂停一段时间
+            if (!debug) {
+                this.log("等待" + interval + "秒");
+                Thread.sleep(interval * 1000);
+
+            }
+            this.log("抽样");
+            List<Span> roots = tracker.sampleErr(sampleBatch, interval);
 
             // 抽样
+            this.log("统计并计算结果");
             for (Span root : roots) {
                 // 如果不是目标接口产生的，则跳过
                 if (!this.currentUrls.contains(root.getUrl()))
@@ -272,79 +407,91 @@ public class Heuristic {
                 // DFS
                 LinkedList<Span> stack = new LinkedList<>();
                 stack.push(root);
-                Pair<String, String> servicePair = new Pair<>("root", root.getService());
-                spanTimeSum.put(servicePair, root.getDuration());
-                spanCounter.put(servicePair, 1);
-
                 while (!stack.isEmpty()) {
                     Span fatherSpan = stack.pop();
                     for (Span childSpan : fatherSpan.getChildren()) {
-                        servicePair = new Pair<>(fatherSpan.getService(), childSpan.getService());
+                        stack.push(childSpan);
 
-                        // 统计数据
-                        if (!spanTimeSum.containsKey(servicePair))
-                            spanTimeSum.put(servicePair, 0L);
-                        spanTimeSum.put(servicePair, spanTimeSum.get(servicePair) + childSpan.getDuration());
-                        if (!spanCounter.containsKey(servicePair))
-                            spanCounter.put(servicePair, 0);
-                        spanCounter.put(servicePair, spanCounter.get(servicePair) + 1);
+                        // 生成测试结果
+                        if (fatherSpan.getDuration() < childSpan.getDuration()) {
+                            this.log("探测到异常");
+                            TimeoutResult rs = new TimeoutResult(this.id, this.injectTimes,
+                                    getServiceName(fatherSpan.getService()),
+                                    getServiceName(childSpan.getService())
+                                    , fatherSpan.getDuration(),
+                                    "上游服务阈值（" + fatherSpan.getDuration() + "）小于下游响应时间（" + childSpan.getDuration() + "）", Time.getCurTimeStr());
+                            this.tors.add(rs);
+                        }
                     }
                 }
             }
-
-            // 求平均值
-            for (Pair<String, String> servicePair : spanTimeSum.keySet()) {
-                double responseTime = ((double) spanTimeSum.get(servicePair)) / spanCounter.get(servicePair);
-                if (responseTimeTotal.containsKey(servicePair))
-                    responseTimeTotal.put(servicePair,
-                            (responseTime + responseTimeTotal.get(servicePair)) / 2);
-                else
-                    responseTimeTotal.put(servicePair, responseTime);
-            }
-
-            // 暂停一段时间
-            Thread.sleep(interval * 1000);
+            // 测试环境只测试一轮抽样
+            if (debug)
+                break;
 
         }
 
-        // 诊断
-        Map<String, Double> responseTimeByFather = new HashMap<>();
-        for (Pair<String, String> servicePair : responseTimeTotal.keySet()) {
-            String father = servicePair.getKey();
-            if (!responseTimeByFather.containsKey(father))
-                responseTimeByFather.put(father, 0.0);
-            responseTimeByFather.put(father, responseTimeByFather.get(father) + responseTimeTotal.get(servicePair));
-        }
-
-        // 生成结果
-        for (Pair<String, String> servicePair : responseTimeTotal.keySet()) {
-            String message = "无异常";
-            if (responseTimeTotal.get(servicePair) <= responseTimeByFather.get(servicePair.getKey()))
-                message = servicePair.getKey() + "阈值过小";
-            TimeoutResult rs = new TimeoutResult(this.id, this.injectTimes, servicePair.getKey(), servicePair.getValue()
-                    , responseTimeTotal.get(servicePair), message, Time.getCurTimeStr());
-            this.tors.add(rs);
-        }
+//        // 诊断
+//        System.out.println("诊断");
+//        Map<String, Double> responseTimeByFather = new HashMap<>();
+//        for (Pair<String, String> servicePair : responseTimeTotal.keySet()) {
+//            String father = servicePair.getKey();
+//            if (!responseTimeByFather.containsKey(father))
+//                responseTimeByFather.put(father, 0.0);
+//            responseTimeByFather.put(father, responseTimeByFather.get(father) + responseTimeTotal.get(servicePair));
+//        }
+//
+//        // 生成结果
+//        System.out.println("生成结果");
+//        for (Pair<String, String> servicePair : responseTimeTotal.keySet()) {
+//            String message = "无异常";
+//            if (responseTimeTotal.get(servicePair) <= responseTimeByFather.get(servicePair.getKey()))
+//                message = servicePair.getKey() + "阈值过小";
+//            TimeoutResult rs = new TimeoutResult(this.id, this.injectTimes, servicePair.getKey(), servicePair.getValue()
+//                    , responseTimeTotal.get(servicePair), message, Time.getCurTimeStr());
+//            this.tors.add(rs);
+//        }
 
         // 删除故障
+        System.out.println("删除故障");
         this.deleteFaults();
     }
 
     private void analysisCircuitBreaker() throws InterruptedException {
         TraceTracker tracker = new Jaeger(this.restTemplate);
         Span normalSpanTree = null;
+
+        int maxtry = 100;
+
         // 对正常情况下调用链采样
+        this.log("对正常情况下链采样");
         while (normalSpanTree == null) {
-            Thread.sleep(10 * 1000);
+
+            if (!debug) {
+                this.log("等待10秒");
+                Thread.sleep(10 * 1000);
+            }
+
+            this.log("采样");
             List<Span> roots = tracker.sample(10, 10);
             for (Span root : roots)
                 if (this.currentUrls.contains(root.getUrl())) {
                     normalSpanTree = root;
                     break;
                 }
+
+            // 始终无法抽取到目标接口的trace
+            maxtry--;
+            if (maxtry == 0) {
+                this.log("一直未抽取到目标接口的trace，熔断探测结束");
+                return;
+            }
         }
-        Map<String, Set<String>> edges = new HashMap<>();
+        this.log("获取正常链完毕");
+
         // 获得所有的边
+        this.log("解析正常链中所有的边");
+        Map<String, Set<String>> edges = new HashMap<>();
         LinkedList<Span> stack = new LinkedList<>();
         stack.push(normalSpanTree);
         while (!stack.isEmpty()) {
@@ -359,6 +506,7 @@ public class Heuristic {
 
 
         // 注入故障
+        this.log("注入故障");
         this.injectAbort(500);
 
         // 参数
@@ -371,13 +519,21 @@ public class Heuristic {
         long startTime = Time.getCurTimeStampMs();
         long endTime = startTime + duration * 1000;
 
-        Set<Pair<String, String>> locations = new HashSet<>();
-
         // 探测熔断位置
+        this.log("开始探测熔断位置");
+        this.log("参数：持续" + duration + "秒，间隔为" + interval + "秒，抽样数量为" + sampleBatch + "条");
+        Set<Pair<String, String>> locations = new HashSet<>();
         for (long currentTime = Time.getCurTimeStampMs(); currentTime < endTime; currentTime = Time.getCurTimeStampMs()) {
 
-            List<Span> roots = tracker.sampleErr(sampleBatch, Math.min(5, interval));
+            List<Span> roots = tracker.sampleErr(sampleBatch, interval);
 
+            //暂停一段时间
+            if (!debug) {
+                this.log("等待" + interval + "秒");
+                Thread.sleep(interval * 1000);
+            }
+
+            this.log("分析熔断位置");
             for (Span root : roots) {
                 // 如果不是目标接口产生的，则跳过
                 if (!this.currentUrls.contains(root.getUrl()))
@@ -412,28 +568,41 @@ public class Heuristic {
                 }
             }
 
-            //暂停一段时间
-            Thread.sleep(interval * 1000);
+            if (debug)
+                break;
         }
 
         // 缺失熔断
-        if (locations.isEmpty())
+        if (locations.isEmpty()) {
+            this.log("缺失熔断");
             this.cbrs.add(new CircuitBreakResult(this.id, this.injectTimes,
-                    null, null, 0.0, "缺失熔断",
+                    null, null, 0.0,
+                    "缺失熔断,故障位置:" + ArrayUtils.toString(this.currentIP, ","),
                     Time.getCurTimeStr(), this.currentUrls.toArray(new String[0])));
-        else {// 监控半开状态
+        } else {
+            this.log("开始监控熔断位置的吞吐量");
+            // 监控半开状态
             startTime = Time.getCurTimeStampMs();
             endTime = startTime + duration2 * 1000;
+            this.log("参数：持续" + duration2 + "秒，间隔为" + interval2 + "秒，窗口大小为" + windowSize + "秒");
 
             Telemetry monitor = new Telemetry(this.restTemplate);
             Map<Pair<String, String>, Double> result = new HashMap<>();
             //探测半开状态
             for (long currentTime = Time.getCurTimeStampMs(); currentTime < endTime; currentTime = Time.getCurTimeStampMs()) {
-                String query = "histogram_quantile(0.80, sum(irate(" +
-                        "istio_request_duration_seconds_bucket{reporter=\"source\"}[" + windowSize + "s])) " +
-                        "by (le,source_app,destination_service_name))";
+
+                // 暂停一段时间
+                if (!debug) {
+                    System.out.println("等待" + interval2 + "秒");
+                    Thread.sleep(interval2 * 100);
+                }
+
+                this.log("查询吞吐量数据");
+                String query = "sum(irate(istio_requests_total{reporter=\"source\"}[" + windowSize
+                        + "s])) by (source_app,destination_service_name)";
                 DataSeries[] dataSeries = monitor.query(query);
 
+                this.log("解析吞吐量数据");
                 for (DataSeries ds : dataSeries) {
                     // 过滤不需要的数据列表
                     Map<String, String> tags = ds.getTags();
@@ -451,26 +620,24 @@ public class Heuristic {
                     }
                 }
 
-                // 暂停一段时间
-                Thread.sleep(interval2);
+                if (debug)
+                    break;
             }
 
             // 生成探测结果
+            this.log("生成测试结果");
             for (Pair<String, String> servicePair : result.keySet())
                 this.cbrs.add(new CircuitBreakResult(this.id, this.injectTimes, servicePair.getKey(), servicePair.getValue(),
-                        result.get(servicePair), "无异常", Time.getCurTimeStr(), this.currentUrls.toArray(new String[0])));
+                        result.get(servicePair), "熔断被探测到", Time.getCurTimeStr(), this.currentUrls.toArray(new String[0])));
         }
 
         //删除故障
+        this.log("删除故障");
         this.deleteFaults();
     }
 
     private void analysisRery() throws InterruptedException {
         TraceTracker tracker = new Jaeger(this.restTemplate);
-
-        // 注入delay故障
-        this.injectAbort(500);
-
         // 参数
         long duration = this.configuration.getRetryDetectionDuration();
         int interval = this.configuration.getRetrySampleInterval();
@@ -478,72 +645,119 @@ public class Heuristic {
         long startTime = Time.getCurTimeStampMs();
         long endTime = startTime + duration * 1000;
 
-        Set<String> exclude = new HashSet<>();
-        List<RetryResult> rs = new ArrayList<>();
+        // 抽样正常请求
+        this.log("抽样正常请求");
+        // 暂停一段时间
+        if (!debug) {
+            this.log("等待" + interval + "秒");
+            Thread.sleep(interval * 1000);
+        }
+
+        this.log("抽样中");
+        List<Span> roots = tracker.sample(sampleBatch, interval);
+
+        this.log("抽取正常请求数量");
+        Map<Pair<String, String>, Integer> normalCntr = new HashMap<>();
+        for (Span root : roots) {
+            LinkedList<Span> stack = new LinkedList<>();
+            stack.push(root);
+
+            while (!stack.isEmpty()) {
+                Span fspan = stack.pop();
+                Map<String, Integer> tmp = new HashMap<>();
+                for (Span cspan : fspan.getChildren()) {
+                    //只收集和遍历非异常子树的内容
+                    if (!cspan.isErr()) {
+                        String cname = cspan.getService();
+                        tmp.put(cname, tmp.getOrDefault(cname, 0) + 1);
+                        stack.push(cspan);
+                    }
+                }
+                for (String cname : tmp.keySet())
+                    normalCntr.put(new Pair<>(fspan.getService(), cname), tmp.get(cname));
+            }
+        }
+
+
+        // 注入delay故障
+        this.log("注入丢包");
+        this.injectAbort(500);
+        this.log("注入完毕");
 
         // 探测
+        this.log("开始探测，参数为：持续" + duration + "秒，间隔为" + interval + "秒，抽样数量为" + sampleBatch + "条");
         for (long currentTime = Time.getCurTimeStampMs(); currentTime < endTime; currentTime = Time.getCurTimeStampMs()) {
-            List<Span> roots = tracker.sampleErr(sampleBatch, Math.min(5, interval));
+            // 暂停一段时间
+            if (!debug) {
+                this.log("等待" + interval + "秒");
+                Thread.sleep(interval * 1000);
+            }
 
-            // 抽样
+            this.log("抽样故障调用链中");
+            roots = tracker.sampleErr(sampleBatch, interval);
+
+            this.log("分析中");
             for (Span root : roots) {
                 // 如果不是目标接口产生的，则跳过
                 if (!this.currentUrls.contains(root.getUrl()))
                     continue;
 
-                // 深度优先遍历
-                if (root.isErr()) {
-                    String token = root.getUrl() + root.getService();
-                    if (!exclude.contains(token)) {
-                        rs.add(new RetryResult(this.id, this.injectTimes, root.getUrl(),
-                                "root", root.getService(), 1, "无异常", Time.getCurTimeStr()));
-                        exclude.add(token);
-                    }
-                } else {
-                    LinkedList<Span> stack = new LinkedList<>();
-                    stack.push(root);
-                    while (!stack.isEmpty()) {
-                        Span fatherSpan = stack.pop();
-                        Map<Pair<String, String>, Integer> counter = new HashMap<>();
+                LinkedList<Span> stack = new LinkedList<>();
+                stack.push(root);
+                while (!stack.isEmpty()) {
+                    Span fatherSpan = stack.pop();
+                    Map<String, Integer> counter = new HashMap<>();
+                    for (Span childSpan : fatherSpan.getChildren()) {
+                        stack.push(childSpan);
 
-                        // 计数
-                        for (Span childSpan : fatherSpan.getChildren()) {
-                            stack.push(childSpan);
-                            if (!childSpan.isErr())
-                                continue;
-                            Pair<String, String> servicePair = new Pair<>(fatherSpan.getService(), childSpan.getService());
-                            if (!counter.containsKey(servicePair))
-                                counter.put(servicePair, 0);
-                            counter.put(servicePair, counter.get(servicePair) + 1);
+                        if (childSpan.isErr()) {
+                            String name = childSpan.getService();
+                            if (!counter.containsKey(name))
+                                counter.put(name, 0);
+                            counter.put(name, counter.get(name) + 1);
                         }
+                    }
 
-                        // 记录结果
-                        for (Pair<String, String> servicePair : counter.keySet()) {
-                            String token = root.getUrl() + servicePair.getKey() + servicePair.getValue() + counter.get(servicePair);
-                            if (!exclude.contains(token)) {
-                                exclude.add(token);
-                                rs.add(new RetryResult(this.id, this.injectTimes, root.getUrl(),
-                                        servicePair.getKey(), servicePair.getValue(), counter.get(servicePair), "无异常",
-                                        Time.getCurTimeStr()));
-                            }
+                    //收集结果
+                    for (String target : counter.keySet()) {
+                        int normalTimes = normalCntr.getOrDefault(new Pair<>(fatherSpan.getService(), target), 1);
+                        if (counter.get(target) != normalTimes) {
+                            this.log("探测到异常重试情况");
+                            this.rrs.add(new RetryResult(this.id, this.injectTimes, root.getUrl(),
+                                    getServiceName(fatherSpan.getService()),
+                                    getServiceName(target),
+                                    counter.get(target),
+                                    "原请求次数为" + normalTimes + ",重试次数为" + counter.get(target),
+                                    Time.getCurTimeStr()));
                         }
                     }
                 }
+
             }
 
-            // 暂停一段时间
-            Thread.sleep(interval * 1000);
+            // 测试环境只测试一轮抽样
+            if (debug)
+                break;
+
         }
-        this.rrs.addAll(rs);
 
         // 删除故障
+        this.log("删除故障");
         this.deleteFaults();
+        this.log("故障删除完毕");
     }
 
     private void analysisBulkHead() throws InterruptedException {
+
+        this.log("查询兄弟节点");
+        if (!debug) {
+            this.log("等待30秒");
+            Thread.sleep(30 * 1000);
+        }
+
         // 确定注入点的父节点与兄弟节点所构成的边集合
-        Thread.sleep(5 * 1000);
-        Graph graph = new Telemetry(this.restTemplate).queryGraph(5);
+        this.log("查询图");
+        Graph graph = new Telemetry(this.restTemplate).queryGraph(30);
         List<Pair<String, String>> edges = graph.getEdges();
         // (1) 确定父节点集合
         Set<String> fatherServices = new HashSet<>();
@@ -555,7 +769,7 @@ public class Heuristic {
                 ++i;
             }
             if (i < this.currentIP.length)
-                fatherServices.add(this.currentIP[i]);
+                fatherServices.add(edge.getKey());
         }
         // (2) 确定边集合
         Set<Pair<String, String>> links = new HashSet<>();
@@ -572,8 +786,11 @@ public class Heuristic {
                 links.add(edge);
         }
 
-        if (links.isEmpty())
+        this.log("兄弟节点共" + links.size() + "个");
+        if (links.isEmpty()) {
+            this.log("不存在兄弟节点,结束船舱模式的探测");
             return;
+        }
 
         // 参数
         int windowSize1 = this.configuration.getBulkheadWindowSize1();
@@ -588,12 +805,21 @@ public class Heuristic {
 
         Telemetry monitor = new Telemetry(this.restTemplate);
         Map<Pair<String, String>, Double> normal = new HashMap<>();
+        this.log("探测父节点到兄弟节点的正常吞吐量");
+        this.log("开始探测，参数为：持续" + duration1 + "秒，间隔为" + interval1 + "秒，窗口为" + windowSize1 + "秒");
         // 获取正常数据
         for (long currentTime = Time.getCurTimeStampMs(); currentTime < endTime; currentTime = Time.getCurTimeStampMs()) {
+            if (!debug) {
+                this.log("等待" + interval1 + "秒");
+                Thread.sleep(interval1 * 1000);
+            }
+
+            this.log("查询吞吐量");
             String query = "sum(irate(istio_requests_total{reporter=\"source\"}[" + windowSize1
-                    + "])) by (source_app,destination_service_name)";
+                    + "s])) by (source_app,destination_service_name)";
             DataSeries[] dataSeries = monitor.query(query);
 
+            this.log("获取吞吐量");
             for (DataSeries ds : dataSeries) {
                 // 过滤不需要数据列
                 Map<String, String> tags = ds.getTags();
@@ -607,25 +833,39 @@ public class Heuristic {
                     if (!normal.containsKey(servicePair))
                         normal.put(servicePair, tmp);
                     else
-                        normal.put(servicePair, Math.min(normal.get(servicePair), tmp));
+                        normal.put(servicePair, Math.max(normal.get(servicePair), tmp));
                 }
             }
 
-            Thread.sleep(interval1 * 1000);
+            if (debug)
+                break;
         }
+        this.log("正常吞吐量探测完毕");
 
         // 注入故障
+        this.log("注入20秒延迟");
         this.injectDelay(20);
 
         // 检测
         Map<Pair<String, String>, Double> result = new HashMap<>();
         startTime = Time.getCurTimeStampMs();
         endTime = startTime + duration2 * 1000;
+
+        this.log("探测父节点到兄弟节点的异常吞吐量");
+        this.log("开始探测，参数为：持续" + duration2 + "秒，间隔为" + interval2 + "秒，窗口为" + windowSize2 + "秒");
         for (long currentTime = Time.getCurTimeStampMs(); currentTime < endTime; currentTime = Time.getCurTimeStampMs()) {
+            //暂停一段时间
+            if (!debug) {
+                this.log("等待" + interval2 + "秒");
+                Thread.sleep(interval2 * 1000);
+            }
+
+            this.log("查询吞吐量");
             String query = "sum(irate(istio_requests_total{reporter=\"source\"}[" + windowSize2
-                    + "])) by (source_app,destination_service_name)";
+                    + "s])) by (source_app,destination_service_name)";
             DataSeries[] dataSeries = monitor.query(query);
 
+            this.log("获取吞吐量");
             for (DataSeries ds : dataSeries) {
                 // 过滤不需要数据列
                 Map<String, String> tags = ds.getTags();
@@ -645,29 +885,44 @@ public class Heuristic {
                     }
                 }
             }
-            //暂停一段时间
-            Thread.sleep(interval2 * 1000);
+
+            if (debug)
+                break;
         }
+        this.log("异常吞吐量探测完毕");
 
         // 记录结果
-        for (Pair<String, String> servicePair : result.keySet())
+        this.log("分析结果");
+        for (Pair<String, String> servicePair : result.keySet()) {
+            this.log("探测到船舱模式缺失");
             this.bhrs.add(new BulkHeadResult(this.id, this.injectTimes, servicePair.getKey(), servicePair.getValue(),
-                    normal.get(servicePair), result.get(servicePair), "缺失熔断", Time.getCurTimeStr()));
+                    normal.get(servicePair), result.get(servicePair), "缺失资源隔离", Time.getCurTimeStr()));
+        }
 
         //删除故障
+        this.log("删除故障");
         this.deleteFaults();
     }
 
     private void clean() {
-        this.logger.getAppender(this.id + ".log").stop();
+        this.logger.getAppender(this.id + ".tmp").stop();
         this.logger = null;
 
-        // TODO: save result
+
     }
 
     private void pushLog(String log) {
         String topic = "/detection/operation";
-        logPusher.convertAndSend(topic, log);
+        logPusher.convertAndSend(topic, Time.getCurTimeStr(Time.pattern1) + " " + log);
+    }
+
+    private void log(String msg) {
+        // 输出到文件
+        this.logger.info(msg);
+        // 输出到web
+        pushLog(msg);
+        // 输出到控制台
+        System.out.println(msg);
     }
 
     private Trace spanToTrace(Span root) {
@@ -676,7 +931,7 @@ public class Heuristic {
         Set<String> services = new HashSet<>();
 
         // add root
-        services.add(root.getUrl());
+        services.add(getServiceName(root.getService()));
         stack.push(root);
 
         // DFS
@@ -685,12 +940,16 @@ public class Heuristic {
             Span[] children = fSpan.getChildren();
             for (int idx = children.length - 1; idx >= 0; --idx) {
                 Span child = children[idx];
-                services.add(child.getService());
+                services.add(getServiceName(child.getService()));
                 stack.push(child);
             }
         }
 
         return new Trace(new String[]{url}, services.toArray(new String[0]));
+    }
+
+    private String getServiceName(String complexName) {
+        return complexName.substring(0, complexName.indexOf('.'));
     }
 
     private void filterIPS() {
@@ -699,8 +958,14 @@ public class Heuristic {
         for (String[] IP : this.IPS) {
             Arrays.sort(IP);
             String token = StringUtils.join(IP, ';');
-            if (this.executedIPS.contains(token))
+
+            // 过滤包含已经执行的故障注入点
+            if (this.executedIPS.contains(token)) {
+                this.log(ArrayUtils.toString(IP) + "已经执行过，被过滤");
                 continue;
+            }
+
+            // 过滤失败的故障注入点
             boolean failed = false;
             for (String failedIP : this.failedIPS)
                 if (token.contains(failedIP)) {
@@ -709,53 +974,74 @@ public class Heuristic {
                 }
             if (!failed)
                 r.add(IP);
+            else
+                this.log(ArrayUtils.toString(IP) + "包含实效的故障注入点，被过滤");
         }
         this.IPS = r;
     }
 
-    private Assertion test() throws InterruptedException {
+    private String IPS2str() {
+        StringBuilder sb = new StringBuilder();
+        for (String[] tmp : this.IPS) {
+            sb.append(ArrayUtils.toString(tmp));
+        }
+        return sb.toString();
+    }
 
+    private Assertion test() throws InterruptedException {
         int sampleBatch = 10;
         long duration = 30;
-        int interval = 3;
+        int interval = 10;
 
         long startTime = Time.getCurTimeStampMs();
         long endTime = startTime + duration * 1000;
 
-        // 当前测试的接口集合
-        Set<String> urls = new HashSet<>();
-        for (Trace t : this.currentTracePool)
-            urls.addAll(Arrays.asList(t.getUrls()));
-
         TraceTracker tracker = new Jaeger(this.restTemplate);
 
         // 根据内置条件验证结果
+        this.log("验证返回结果和响应时间");
         for (long curTime = Time.getCurTimeStampMs(); curTime < endTime; curTime = Time.getCurTimeStampMs()) {
-            Thread.sleep(interval * 1000);
+
+            if (!debug) {
+                this.log("等待" + interval + "秒");
+                Thread.sleep(interval * 1000);
+            }
+
+            this.log("采样调用链");
             List<Span> spanTrees = tracker.sample(sampleBatch, interval);
 
+            this.log("逐个trace验证");
             for (Span root : spanTrees) {
                 // 过滤无关trace
-                if (!urls.contains(root.getUrl()))
+                if (!this.currentUrls.contains(root.getUrl()))
                     continue;
 
                 // 验证httpcode
                 if (root.isErr() || Integer.valueOf(root.getCode()) >= 300)
                     return new Assertion("httpcode", root.getUrl(), "返回码为" + root.getCode());
 
+
                 // 验证响应时间
                 if (root.getDuration() / 1000 >= 10)
                     return new Assertion("responseTime", root.getUrl(), "响应时间为" + root.getDuration() / 1000);
             }
+
+            if (debug)
+                break;
         }
+        this.log("返回结果和响应时间正常");
 
         // 根据用户定义的验证脚本验证
-        String params = StringUtils.join(urls.iterator(), ',');
+        this.log("验证用户自定义脚本");
+        String params = StringUtils.join(this.currentUrls.iterator(), ' ');
         for (String assertionFile : this.configuration.getAssertionsUserDef()) {
             if (FileUtil.existFile(assertionFile)) {
+                this.log("开始验证" + assertionFile);
                 try {
                     //执行用户脚本
-                    String str = Cmd.execForStd("python " + assertionFile + " -l " + params);
+                    String str = Cmd.execForStd("python " + assertionFile + " " + params);
+                    if (str.isEmpty())
+                        continue;
 
                     //验证结果
                     JsonArray results = new JsonParser().parse(str).getAsJsonArray();
@@ -765,17 +1051,16 @@ public class Heuristic {
                     for (int i = 0; i < results.size(); ++i) {
                         JsonObject r = results.get(i).getAsJsonObject();
                         String url = r.get("url").getAsString();
-                        if (urls.contains(url))
+                        if (this.currentUrls.contains(url))
                             return new Assertion(r.get("name").getAsString(),
                                     url, r.get("message").getAsString());
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    System.out.println("用户上传的验证脚本有问题");
+                    this.log(assertionFile + "有问题");
                 }
             }
         }
-
         return null;
     }
 
@@ -787,6 +1072,7 @@ public class Heuristic {
 
             this.currentFaults.add(delay);
         }
+        this.log("等待5秒");
         Thread.sleep(5 * 1000);
     }
 
@@ -798,15 +1084,59 @@ public class Heuristic {
 
             this.currentFaults.add(abort);
         }
+        this.log("等待5秒");
         Thread.sleep(5 * 1000);
     }
 
     private void deleteFaults() throws InterruptedException {
         Injector injector = new Injector();
-        for (Fault fault : this.currentFaults)
+        for (Fault fault : this.currentFaults) {
             injector.delete(fault);
+//            injector.deleteVirtualservice(fault.getTarService());
+        }
         this.currentFaults = new ArrayList<>();
+
+        this.log("等待5秒");
         Thread.sleep(5 * 1000);
     }
 
+    public void setStop(boolean stop) {
+        this.stop = stop;
+    }
+
+    public List<TimeoutResult> getTors() {
+        return tors;
+    }
+
+    public List<CircuitBreakResult> getCbrs() {
+        return cbrs;
+    }
+
+    public List<RetryResult> getRrs() {
+        return rrs;
+    }
+
+    public List<BulkHeadResult> getBhrs() {
+        return bhrs;
+    }
+
+    public List<Trace> getTracePool() {
+        return tracePool;
+    }
+
+    public List<Trace> getCurrentTracePool() {
+        return currentTracePool;
+    }
+
+    public Set<String> getCurrentUrls() {
+        return currentUrls;
+    }
+
+    public List<String[]> getIPS() {
+        return IPS;
+    }
+
+    public String getId() {
+        return id;
+    }
 }

@@ -17,7 +17,7 @@ import java.util.*;
 @Service
 public class Jaeger implements TraceTracker {
 
-    private String host = "127.0.0.1:31211";
+    private String host = "http://127.0.0.1:31211";
 
     private RestTemplate restTemplate;
 
@@ -90,12 +90,18 @@ public class Jaeger implements TraceTracker {
         exName.add("Check");
 
         List<Span> trees = new ArrayList<>();
+//        System.out.println("共" + traces.size() + "条trace需要反序列化");
         for (JsonElement trace : traces) {
+//            System.out.println("反序列化trace:" + trace.getAsJsonObject().get("traceID").getAsString());
             JsonArray spans = trace.getAsJsonObject().getAsJsonArray("spans");
 
+            Span root = null;
+
             // 收集所有span
-            Map<Long, Span> spanMap = new HashMap<>();
-            Map<Long, List<Long>> edges = new HashMap<>();
+            Map<String, Span> spanMap = new HashMap<>();
+            Map<String, List<String>> edges = new HashMap<>();
+
+//            System.out.println("生成spans中");
             for (JsonElement span : spans) {
                 JsonObject spanInJson = span.getAsJsonObject();
 
@@ -103,7 +109,7 @@ public class Jaeger implements TraceTracker {
                 String serviceName = spanInJson.get("operationName").getAsString();
                 if (exName.contains(serviceName))
                     continue;
-                long spanId = spanInJson.get("spanID").getAsLong();
+                String spanId = spanInJson.get("spanID").getAsString();
                 String timestamp = Time.timestamp2Str(spanInJson.get("startTime").getAsLong() / 1000);
                 long duration = spanInJson.get("duration").getAsLong() / 1000;
                 String method = null;
@@ -139,32 +145,41 @@ public class Jaeger implements TraceTracker {
                 // 构建边
                 JsonArray father = spanInJson.getAsJsonArray("references");
                 if (father.size() != 0) {
-                    long fspanId = father.get(0).getAsJsonObject().get("spanID").getAsLong();
+                    String fspanId = father.get(0).getAsJsonObject().get("spanID").getAsString();
                     if (!edges.containsKey(fspanId))
                         edges.put(fspanId, new ArrayList<>());
                     edges.get(fspanId).add(spanId);
+                } else {
+                    root = tmp;
                 }
             }
 
+            // 如果没有找到根结点
+            if (root == null) {
+//                System.out.println("没找到根结点");
+                continue;
+            }
+//            else
+//                System.out.println("根结点为" + root.getService());
+
+
+//            System.out.println("构建树中");
             // 构建树
-            for (long fspanid : edges.keySet()) {
-                List<Long> cspanids = edges.get(fspanid);
+            for (String fspanid : edges.keySet()) {
+                List<String> cspanids = edges.get(fspanid);
                 Span fspan = spanMap.get(fspanid);
+                if (fspan == null)
+                    continue;
                 Span[] cspans = new Span[cspanids.size()];
                 fspan.setChildren(cspans);
                 for (int i = 0; i < cspans.length; ++i) {
-                    long cspanid = cspanids.get(i);
+                    String cspanid = cspanids.get(i);
                     cspans[i] = spanMap.get(cspanid);
                 }
             }
 
+//            System.out.println("调整树中");
             // 调整树
-            Span root = null;
-            for (Span span : spanMap.values())
-                if (span.getChildren().length == 0) {
-                    root = span;
-                    break;
-                }
             LinkedList<Span> stack = new LinkedList<>();
             stack.push(root);
             while (!stack.isEmpty()) {

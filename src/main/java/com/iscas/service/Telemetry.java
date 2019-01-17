@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.iscas.bean.DataSeries;
 import com.iscas.bean.Graph;
+import com.iscas.entity.Edge;
 import com.iscas.util.Time;
 import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ public class Telemetry {
 
     private RestTemplate restTemplate;
 
-    private String host = "127.0.0.1:30795";
+    private String host = "http://127.0.0.1:30795";
 
     @Autowired
     public Telemetry(RestTemplate restTemplate) {
@@ -53,6 +54,38 @@ public class Telemetry {
         return res.getBody();
     }
 
+    public com.iscas.entity.Graph queryCurrentResponseTime() {
+        //抽样窗口如果小于7秒，就没有数据了
+        String query = "histogram_quantile(0.90, sum(irate(" +
+                "istio_request_duration_seconds_bucket{reporter=\"source\"}[10s])) by (le,source_app,destination_service_name))";
+        DataSeries[] dataSeries = query(query);
+        return toGraph(dataSeries);
+    }
+
+    public com.iscas.entity.Graph queryCurrentThroughoutGraph() {
+        //查询
+        String query = "sum(irate(istio_requests_total{reporter=\"source\"}[10s])) by (source_app,destination_service_name)";
+        DataSeries[] dataSeries = query(query);
+        return toGraph(dataSeries);
+    }
+
+    private com.iscas.entity.Graph toGraph(DataSeries[] dataSeries) {
+        Set<String> nodes = new HashSet<>();
+        List<Edge> edges = new ArrayList<>();
+        for (DataSeries dataSerie : dataSeries) {
+            Map<String, String> tags = dataSerie.getTags();
+            String src = tags.get("source_app");
+            String tar = tags.get("destination_service_name");
+            nodes.add(src);
+            nodes.add(tar);
+            String val = dataSerie.getData().get(0).getValue();
+            if (val.equals("NaN"))
+                val = "0";
+            edges.add(new Edge(src, tar, val));
+        }
+        return new com.iscas.entity.Graph(nodes, edges);
+    }
+
     private DataSeries[] deserializeProm(JsonArray series) {
         DataSeries[] result = new DataSeries[series.size()];
         for (int i = 0; i < result.length; ++i) {
@@ -78,9 +111,18 @@ public class Telemetry {
     }
 
     public Graph queryGraph(int lookback) {
-        String queryUrl = host + "/d3graph?filter_empty=true&&time_horizon=" + lookback + "s";
-        String res = restTemplate.getForEntity(queryUrl, String.class).getBody();
-        JsonObject graph = new JsonParser().parse(res).getAsJsonObject();
+        String url = "http://127.0.0.1:32550/d3graph";
+
+        //make up params
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("filter_empty", String.valueOf(true));
+        params.add("time_horizon", lookback + "s");
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(url).queryParams(params);
+        HttpEntity<String> res = restTemplate.getForEntity(uriComponentsBuilder.build().encode().toUri(), String.class);
+//        String queryUrl = host + "/d3graph?filter_empty=false&&time_horizon=" + lookback + "s";
+//        String res = restTemplate.getForEntity(queryUrl, String.class).getBody();
+        JsonObject graph = new JsonParser().parse(res.getBody()).getAsJsonObject();
 
         Set<String> exName = new HashSet<>();
         exName.add("unknown (unknown)");

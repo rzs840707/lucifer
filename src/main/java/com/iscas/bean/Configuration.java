@@ -44,39 +44,39 @@ public class Configuration {
 
     public Configuration() {
         // 设置trace探测阶段
-        this.traceDetectDuration = 60;
+        this.traceDetectDuration = 2 * 30;
         this.traceDetectSampleBatch = 20;
-        this.traceDetectSampleInterval = 3;
+        this.traceDetectSampleInterval = 30;
 
         // 设置断言验证
         this.assertionsUserDef = new ArrayList<>();
-        this.assertionsUserDef.add("assertions/productpage.py");
+        this.assertionsUserDef.add("/home/ccx/dev/projects/java/lucifer/src/main/resources/assertions/productpage.py");
 
         // 设置超时
-        this.timeoutDetectionDuration = 5 * 60;
+        this.timeoutDetectionDuration = 2 * 30;
         this.timeoutSampleBatch = 20;
-        this.timeoutSampleInterval = 3;
+        this.timeoutSampleInterval = 30;
 
         // 设置重试
-        this.retryDetectionDuration = 5 * 60;
+        this.retryDetectionDuration = 2 * 30;
         this.retrySampleBatch = 20;
-        this.retrySampleInterval = 3;
+        this.retrySampleInterval = 30;
 
         //设置熔断
-        this.circuitbreakerLocateDuration = 5 * 60;
+        this.circuitbreakerLocateDuration = 2 * 30;
         this.circuitbreakerLocateSampleBatch = 20;
-        this.circuitbreakerLocateInterval = 3;
-        this.circuitbreakerHalfStateDuration = 3;
-        this.circuitbreakerQPSWindowSize = 3;
-        this.circuitbreakerInterval = 1;
+        this.circuitbreakerLocateInterval = 30;
+        this.circuitbreakerHalfStateDuration = 2 * 30;
+        this.circuitbreakerQPSWindowSize = 10;
+        this.circuitbreakerInterval = 10;
 
         //设置船舱
-        this.bulkheadDuration1 = 3 * 60;
-        this.bulkheadWindowSize1 = 3;
-        this.bulkheadInterval1 = 1;
-        this.bulkheadDuration2 = 3 * 60;
-        this.bulkheadWindowSize2 = 3;
-        this.bulkheadInterval2 = 1;
+        this.bulkheadDuration1 = 2 * 30;
+        this.bulkheadWindowSize1 = 10;
+        this.bulkheadInterval1 = 10;
+        this.bulkheadDuration2 = 2 * 30;
+        this.bulkheadWindowSize2 = 10;
+        this.bulkheadInterval2 = 10;
         this.bulkheadThreshold = 0.4;
     }
 

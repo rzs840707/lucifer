@@ -21,4 +21,36 @@ public class BulkHeadResult {
         this.message = message;
         this.timestamp = timestamp;
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public int getInjectTime() {
+        return injectTime;
+    }
+
+    public String getSrcName() {
+        return srcName;
+    }
+
+    public String getTargetName() {
+        return targetName;
+    }
+
+    public double getNormalthroughout() {
+        return normalthroughout;
+    }
+
+    public double getWorstThroughout() {
+        return worstThroughout;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
 }
