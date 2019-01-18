@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Lucifer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!--<meta name="description" content="">-->
+    <!--<meta name="author" content="">-->
+    <link rel="shortcut icon" type="image/png" href="icon/lucifer.ico"/>
+
+    <title>Dashboard Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+
+    <!-- Custom styles for this template -->
+    <link href="css/dashboard.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <a class="navbar-brand" href="#">
+        <img src="icon/lucifer.ico" width="30" height="30" alt="Lucifer">
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Loader</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Statistic</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Topology</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Test</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Documentation</a>
+            </li>
+        </ul>
+        <form class="form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="search" id="username" placeholder="username"
+                   aria-label="username">
+            <input type="password" class="form-control  mr-sm-2" id="password" placeholder="Password"
+                   aria-label="password">
+            <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                <div class="btn-group mr-2" role="group">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">sign in</button>
+                </div>
+                <div class="btn-group mr-2" role="group">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">sign up</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</nav>
+
+<main role="main">
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Detection</span>
+                        <a class="d-flex align-items-center text-muted">
+                            <span data-feather="server"></span>
+                        </a>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="configuration.html">
+                                <span data-feather="repeat"></span>
+                                配置
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="experiment.html">
+                                <span data-feather="git-pull-request"></span>
+                                探测
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="history.html">
+                                <span data-feather="shuffle"></span>
+                                历史
+                            </a>
+                        </li>
+                    </ul>
+
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Service Mesh</span>
+                        <a class="d-flex align-items-center text-muted">
+                            <span data-feather="server"></span>
+                        </a>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span data-feather="settings"></span>
+                                telemetry
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span data-feather="activity"></span>
+                                traffic shifting
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="javascript:void(0)" onclick="report_tab()">
+                                <span data-feather="file-text"></span>
+                                fault injection
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <main id="tab_frame" role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">历史</h1>
+                </div>
+
+                <table class="table table-striped table-hover">
+                    <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">开始时间</th>
+                        <th scope="col">结束时间</th>
+                        <th scope="col">注入次数</th>
+                        <th scope="col">可疑阈值数</th>
+                        <th scope="col">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="historyTable">
+                    </tbody>
+                </table>
+
+            </main> <!-- end of frame -->
+        </div>
+    </div>
+</main>
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+
+<!-- Icons -->
+<script src="js/feather.min.js"></script>
+
+<!-- echarts -->
+<script src="js/echarts.min.js"></script>
+
+<!-- defined functions -->
+<script>
+
+    // render related
+    // for icon
+    feather.replace();
+
+    refreshHistoryTable();
+
+    function refreshHistoryTable() {
+        $.ajax({
+            url: '/history/summaries',
+            success: function (data) {
+                data = data.data;
+                var list = $("#historyTable").empty();
+                data.forEach(function (value) {
+                    // 创建列表行
+                    var line = $("<tr></tr>");
+                    line.append($("<th scope=\"row\" class=\"align-middle\">" + value.id + "</th>"));
+                    line.append($("<td class=\"align-middle\">" + value.startTime + "</td>"));
+                    line.append($("<td class=\"align-middle\">" + value.endTime + "</td>"));
+                    line.append($("<td class=\"align-middle\">" + value.injectTime + "</td>"));
+                    line.append($("<td class=\"align-middle\">" + (value.timeoutTime +
+                        value.circuitBreakerTime + value.bulkheadTime + value.retryTime) + "</td>"));
+                    line.append($("<td class=\"justify-content-center\">" +
+                        "<button type=\"button\" class=\"btn btn-sm btn-outline-info\" onclick='forDetails(this)'>查看</button>" +
+                        "<button type=\"button\" class=\"btn btn-sm btn-outline-danger\" onclick='deleteHistory(this)'>删除</button>" +
+                        "</td>"));
+                    list.append(line);
+                })
+            }
+        });
+    }
+
+    function forDetails(button) {
+        var id = $(button).parent().siblings(":first").text();
+        window.location.href = "/details.html?historyId=" + id;
+    }
+
+    function deleteHistory(button) {
+        var id = $(button).parent().siblings(":first").text();
+        $.ajax({
+            url: '/history/deleteSummary',
+            data: {"id": id},
+            success: function (data) {
+                alert("删除成功");
+                refreshHistoryTable();
+            }
+        });
+    }
+
+</script>
+</body>
+</html>

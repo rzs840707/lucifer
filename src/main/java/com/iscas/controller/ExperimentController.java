@@ -10,11 +10,9 @@ import com.iscas.entity.Result;
 import com.iscas.service.Telemetry;
 import com.iscas.strategy.Heuristic;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -143,7 +141,7 @@ public class ExperimentController {
     }
 
     @RequestMapping("/logFile")
-    public Result getExpsLog() throws FileNotFoundException {
+    public Result getExpsLog() {
         String log = "/mylogs/" + this.heuristic.getId() + ".log";
         List<Object> r = new ArrayList<>();
         r.add(log);

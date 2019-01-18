@@ -8,11 +8,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.iscas.bean.*;
-import com.iscas.bean.Assertion;
 import com.iscas.bean.fault.Abort;
 import com.iscas.bean.fault.Delay;
 import com.iscas.bean.fault.Fault;
 import com.iscas.bean.result.*;
+import com.iscas.dao.*;
 import com.iscas.service.Injector;
 import com.iscas.service.Jaeger;
 import com.iscas.service.Telemetry;
@@ -30,7 +30,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,10 +39,19 @@ public class Heuristic {
     public static int times = 0;
 
     @Autowired
-    public Heuristic(Configuration configuration, SimpMessagingTemplate simpMessagingTemplate, RestTemplate restTemplate) {
+    public Heuristic(Configuration configuration, SimpMessagingTemplate simpMessagingTemplate, RestTemplate restTemplate,
+                     DetectResultDAO detectResultDAO, CircuitBreakerResultDAO circuitBreakerResultDAO,
+                     BulkHeadResultDAO bulkHeadResultDAO, RetryResultDAO retryResultDAO,
+                     TimeoutResultDAO timeoutResultDAO, SummaryDAO summaryDAO) {
         this.configuration = configuration;
         this.logPusher = simpMessagingTemplate;
         this.restTemplate = restTemplate;
+        this.detectResultDAO = detectResultDAO;
+        this.circuitBreakerResultDAO = circuitBreakerResultDAO;
+        this.bulkHeadResultDAO = bulkHeadResultDAO;
+        this.retryResultDAO = retryResultDAO;
+        this.timeoutResultDAO = timeoutResultDAO;
+        this.summaryDAO = summaryDAO;
     }
 
     // configuration
@@ -73,6 +81,12 @@ public class Heuristic {
     private Logger logger;
     private SimpMessagingTemplate logPusher;
     private RestTemplate restTemplate;
+    private DetectResultDAO detectResultDAO;
+    private CircuitBreakerResultDAO circuitBreakerResultDAO;
+    private BulkHeadResultDAO bulkHeadResultDAO;
+    private RetryResultDAO retryResultDAO;
+    private TimeoutResultDAO timeoutResultDAO;
+    private SummaryDAO summaryDAO;
 
 
     public void run() {
@@ -908,7 +922,21 @@ public class Heuristic {
         this.logger.getAppender(this.id + ".tmp").stop();
         this.logger = null;
 
+        pushLog("持久化中");
+        this.summaryDAO.save(new Summary(this.id, this.startTime, Time.getCurTimeStr(), this.injectTimes, this.injectTimes * 4,
+                this.tors.size(), this.cbrs.size(), this.bhrs.size(), this.rrs.size()));
 
+        // 保存所有结果
+        pushLog("保存探测结果");
+        this.detectResultDAO.saveAll(this.rs);
+        pushLog("保存超时结果");
+        this.timeoutResultDAO.saveAll(this.tors);
+        pushLog("保存重试结果");
+        this.retryResultDAO.saveAll(this.rrs);
+        pushLog("保存船舱结果");
+        this.bulkHeadResultDAO.saveAll(this.bhrs);
+        pushLog("保存熔断结果");
+        this.circuitBreakerResultDAO.saveAll(this.cbrs);
     }
 
     private void pushLog(String log) {

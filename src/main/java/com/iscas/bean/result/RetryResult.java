@@ -1,6 +1,13 @@
 package com.iscas.bean.result;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "RetryResult")
 public class RetryResult {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int gid;
     private String id;
     private int injectTime;
     private String url;
@@ -10,7 +17,11 @@ public class RetryResult {
     private String message;
     private String timestamp;
 
-    public RetryResult(String id, int injectTime, String url, String srcName, String targetName, int threshold, String message, String timestamp) {
+    public RetryResult() {
+    }
+
+    public RetryResult(String id, int injectTime, String url, String srcName,
+                       String targetName, int threshold, String message, String timestamp) {
         this.id = id;
         this.injectTime = injectTime;
         this.url = url;
@@ -51,5 +62,13 @@ public class RetryResult {
 
     public String getTimestamp() {
         return timestamp;
+    }
+
+    public int getGid() {
+        return gid;
+    }
+
+    public void setGid(int gid) {
+        this.gid = gid;
     }
 }

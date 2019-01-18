@@ -1,6 +1,13 @@
 package com.iscas.bean.result;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "BulkHeadResult")
 public class BulkHeadResult {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int gid;
     private String id;
     private int injectTime;
     private String srcName;
@@ -9,6 +16,9 @@ public class BulkHeadResult {
     private double worstThroughout;
     private String message;
     private String timestamp;
+
+    public BulkHeadResult() {
+    }
 
     public BulkHeadResult(String id, int injectTime, String srcName,
                           String targetName, double normalthroughout, double worstThroughout, String message, String timestamp) {
@@ -52,5 +62,13 @@ public class BulkHeadResult {
 
     public String getTimestamp() {
         return timestamp;
+    }
+
+    public int getGid() {
+        return gid;
+    }
+
+    public void setGid(int gid) {
+        this.gid = gid;
     }
 }

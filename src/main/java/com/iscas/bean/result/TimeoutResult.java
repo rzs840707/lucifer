@@ -1,6 +1,13 @@
 package com.iscas.bean.result;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "TimeoutResult")
 public class TimeoutResult {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int gid;
     private String id;
     private int injectTime;
     private String srcName;
@@ -8,6 +15,9 @@ public class TimeoutResult {
     private double threshold;
     private String message;
     private String timestamp;
+
+    public TimeoutResult() {
+    }
 
     public TimeoutResult(String id, int injectTime, String srcName,
                          String targetName, double threshold, String message, String timestamp) {
@@ -74,5 +84,13 @@ public class TimeoutResult {
 
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public int getGid() {
+        return gid;
+    }
+
+    public void setGid(int gid) {
+        this.gid = gid;
     }
 }

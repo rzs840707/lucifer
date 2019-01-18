@@ -1,8 +1,16 @@
 package com.iscas.bean.result;
 
+import com.iscas.dao.CircuitBreakerResultDAO;
 import org.apache.commons.lang3.ArrayUtils;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "CircuitBreakResult")
 public class CircuitBreakResult {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int gid;
     private String id;
     private int injectTime;
     private String srcName;
@@ -10,8 +18,12 @@ public class CircuitBreakResult {
     private double halfthroughout;
     private String message;
     private String timestamp;
+    @Transient
     private String[] urls;
     private String urlsStr;
+
+    public CircuitBreakResult() {
+    }
 
     public CircuitBreakResult(String id, int injectTime, String srcName, String targetName,
                               double halfthroughout, String message, String timestamp, String[] urls) {
@@ -23,6 +35,7 @@ public class CircuitBreakResult {
         this.message = message;
         this.timestamp = timestamp;
         this.urls = urls;
+        this.urlsStr = ArrayUtils.toString(urls, ",");
     }
 
     public String getId() {
@@ -58,10 +71,18 @@ public class CircuitBreakResult {
     }
 
     public String getUrlsStr() {
-        return ArrayUtils.toString(urls, ",");
+        return this.urlsStr;
     }
 
     public void setUrlsStr(String urlsStr) {
         this.urlsStr = urlsStr;
+    }
+
+    public int getGid() {
+        return gid;
+    }
+
+    public void setGid(int gid) {
+        this.gid = gid;
     }
 }

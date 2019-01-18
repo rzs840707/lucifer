@@ -191,4 +191,84 @@ public class Configuration {
     public List<String> getAssertionsUserDef() {
         return assertionsUserDef;
     }
+
+    public void setAssertionsUserDef(List<String> assertionsUserDef) {
+        this.assertionsUserDef = assertionsUserDef;
+    }
+
+    public void setTimeoutDetectionDuration(long timeoutDetectionDuration) {
+        this.timeoutDetectionDuration = timeoutDetectionDuration;
+    }
+
+    public void setTimeoutSampleInterval(int timeoutSampleInterval) {
+        this.timeoutSampleInterval = timeoutSampleInterval;
+    }
+
+    public void setTimeoutSampleBatch(int timeoutSampleBatch) {
+        this.timeoutSampleBatch = timeoutSampleBatch;
+    }
+
+    public void setRetryDetectionDuration(long retryDetectionDuration) {
+        this.retryDetectionDuration = retryDetectionDuration;
+    }
+
+    public void setRetrySampleInterval(int retrySampleInterval) {
+        this.retrySampleInterval = retrySampleInterval;
+    }
+
+    public void setRetrySampleBatch(int retrySampleBatch) {
+        this.retrySampleBatch = retrySampleBatch;
+    }
+
+    public void setCircuitbreakerLocateDuration(long circuitbreakerLocateDuration) {
+        this.circuitbreakerLocateDuration = circuitbreakerLocateDuration;
+    }
+
+    public void setCircuitbreakerLocateInterval(int circuitbreakerLocateInterval) {
+        this.circuitbreakerLocateInterval = circuitbreakerLocateInterval;
+    }
+
+    public void setCircuitbreakerLocateSampleBatch(int circuitbreakerLocateSampleBatch) {
+        this.circuitbreakerLocateSampleBatch = circuitbreakerLocateSampleBatch;
+    }
+
+    public void setCircuitbreakerQPSWindowSize(int circuitbreakerQPSWindowSize) {
+        this.circuitbreakerQPSWindowSize = circuitbreakerQPSWindowSize;
+    }
+
+    public void setCircuitbreakerHalfStateDuration(long circuitbreakerHalfStateDuration) {
+        this.circuitbreakerHalfStateDuration = circuitbreakerHalfStateDuration;
+    }
+
+    public void setCircuitbreakerInterval(int circuitbreakerInterval) {
+        this.circuitbreakerInterval = circuitbreakerInterval;
+    }
+
+    public void setBulkheadDuration1(long bulkheadDuration1) {
+        this.bulkheadDuration1 = bulkheadDuration1;
+    }
+
+    public void setBulkheadWindowSize1(int bulkheadWindowSize1) {
+        this.bulkheadWindowSize1 = bulkheadWindowSize1;
+    }
+
+    public void setBulkheadInterval1(int bulkheadInterval1) {
+        this.bulkheadInterval1 = bulkheadInterval1;
+    }
+
+    public void setBulkheadDuration2(long bulkheadDuration2) {
+        this.bulkheadDuration2 = bulkheadDuration2;
+    }
+
+    public void setBulkheadWindowSize2(int bulkheadWindowSize2) {
+        this.bulkheadWindowSize2 = bulkheadWindowSize2;
+    }
+
+    public void setBulkheadInterval2(int bulkheadInterval2) {
+        this.bulkheadInterval2 = bulkheadInterval2;
+    }
+
+    public void setBulkheadThreshold(double bulkheadThreshold) {
+        this.bulkheadThreshold = bulkheadThreshold;
+    }
 }

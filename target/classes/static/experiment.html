@@ -98,21 +98,21 @@
                     </h6>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link" href="javascript:void(0)">
+                            <a class="nav-link" href="configuration.html">
                                 <span data-feather="repeat"></span>
-                                configuration
+                                配置
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="javascript:void(0)">
+                            <a class="nav-link" href="experiment.html">
                                 <span data-feather="git-pull-request"></span>
-                                experiment
+                                探测
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="history.html">
                                 <span data-feather="shuffle"></span>
-                                history
+                                历史
                             </a>
                         </li>
                     </ul>
@@ -153,7 +153,6 @@
                         <div class="btn-group mr-2">
                             <button class="btn btn-sm btn-outline-secondary" onclick="start()">开始</button>
                             <button class="btn btn-sm btn-outline-secondary" onclick="stop()">终止</button>
-                            <button class="btn btn-sm btn-outline-secondary">结果</button>
                             <button class="btn btn-sm btn-outline-secondary" onclick="downloadLog()">日志</button>
                         </div>
                     </div>
@@ -374,7 +373,7 @@
 
     // render related
     // for icon
-    // feather.replace();
+    feather.replace();
 
     // timer for refresh data
     // setInterval(draw_throughput_graph,3000);
@@ -743,7 +742,7 @@
         $.ajax({
             url: '/exp/stop',
             success: function (data) {
-                    alert(data.message);
+                alert(data.message);
             }
         });
     }
