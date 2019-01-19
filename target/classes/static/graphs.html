@@ -63,14 +63,14 @@
                         <label for="src_svc" class="col-4 col-form-label">源服务</label>
                         <div class="col-8">
                             <input type="text" class="form-control" id="src_svc" name="srcSvc"
-                                   placeholder="source service">
+                                   placeholder="source service" value="productpage">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="tar_svc" class="col-4 col-form-label">目标服务</label>
                         <div class="col-8">
                             <input type="text" class="form-control" id="tar_svc" name='tarSvc'
-                                   placeholder="target service">
+                                   placeholder="target service" value="details">
                         </div>
                     </div>
                     <div class="form-group row">
@@ -241,9 +241,6 @@
                             </button>
                             <button class="btn btn-sm btn-outline-secondary" data-toggle="modal"
                                     data-target="#addGraph">添加
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary" data-toggle="modal"
-                                    data-target="#deleteGraph">删除
                             </button>
                         </div>
                     </div>
@@ -427,188 +424,97 @@
         });
     }
 
-    // function draw_response_time_graph() {
-    //     console.log("draw response time graph");
-    //     // query data
-    //     var nodes = ['A', 'B', 'C', 'E', 'D', 'F'];
-    //     var links = [{src: 'A', tar: 'B', label: '0.0'},
-    //         {src: 'A', tar: 'C', label: '1.5'},
-    //         {src: 'A', tar: 'D', label: '2.5'},
-    //         {src: 'A', tar: 'E', label: '3.5'},
-    //         {src: 'D', tar: 'F', label: '4.5'},
-    //         {src: 'E', tar: 'F', label: '5.5'}];
-    //
-    //     // create a graph
-    //     var g = new dagreD3.graphlib.Graph().setGraph({}).setDefaultEdgeLabel();
-    //
-    //     // add nodes and edges
-    //     nodes.forEach(function (node) {
-    //         g.setNode(node, {label: node, class: "node"});
-    //     });
-    //     links.forEach(function (link) {
-    //         e = {label: link.label, curve: d3.curveBasis};
-    //         if (link.label > 5)
-    //             e.class = 'edge-warning';
-    //         else
-    //             e.class = 'edge-normal';
-    //         g.setEdge(link.src, link.tar, e);
-    //     });
-    //
-    //     // remove old graph and add new graph
-    //     var svg = d3.select("#response_chart");
-    //     var old_g = svg.select("g");
-    //     old_g.remove();
-    //     svg.append("g");
-    //     var new_g = svg.select('g');
-    //
-    //     // Set up zoom support
-    //     var zoom = d3.zoom().on("zoom", function () {
-    //         new_g.attr("transform", d3.event.transform);
-    //     });
-    //     svg.call(zoom);
-    //
-    //     // paint
-    //     var render = new dagreD3.render();
-    //     render(new_g, g);
-    //
-    //     // Center the graph
-    //     // var xCenterOffset = (svg.attr("width") - g.graph().width) / 2;
-    //     // new_g.attr("transform", "translate(" + xCenterOffset + ", 20)");
-    //     // svg.attr("height", g.graph().height + 40);
-    //     var initialScale = 0.75;
-    //     var x_offset = $('#sidebar').width();
-    //     var y_offset = 40;
-    //     svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2 + x_offset, y_offset).scale(initialScale));
-    //     svg.attr('height', g.graph().height * initialScale + y_offset * 2);
-    // }
+    function deserializeDataSeries(data) {
+        var result = {};
+        var tmp;
+        data.forEach(function (dataSerie) {
+            tmp = [];
+            dataSerie.data.forEach(function (pair) {
+                tmp.push({
+                    name: formatDateTime(pair.key * 1000),
+                    value: [
+                        formatDateTime(pair.key * 1000),
+                        parseFloat(pair.value).toFixed(2)]
+                });
+            });
+            result[dataSerie.tags.response_code] = tmp;
+        });
+        return result;
+    }
 
-    // function draw_throughput_graph() {
-    //     console.log("draw throughout graph");
-    //     // query data
-    //     var nodes = ['A', 'B', 'C', 'E', 'D', 'F'];
-    //     var links = [{src: 'A', tar: 'B', label: '0.0'},
-    //         {src: 'A', tar: 'C', label: '1.5'},
-    //         {src: 'A', tar: 'D', label: '2.5'},
-    //         {src: 'A', tar: 'E', label: '3.5'},
-    //         {src: 'D', tar: 'F', label: '4.5'},
-    //         {src: 'E', tar: 'F', label: '5.5'}];
-    //
-    //     // create a graph
-    //     var g = new dagreD3.graphlib.Graph().setGraph({}).setDefaultEdgeLabel();
-    //
-    //     // add nodes and edges
-    //     nodes.forEach(function (node) {
-    //         g.setNode(node, {label: node, class: "node"});
-    //     });
-    //     links.forEach(function (link) {
-    //         e = {label: link.label, curve: d3.curveBasis};
-    //         if (link.label < 0.1)
-    //             e.class = 'edge-warning';
-    //         else
-    //             e.class = 'edge-normal';
-    //         g.setEdge(link.src, link.tar, e);
-    //     });
-    //
-    //     // remove old graph and add new graph
-    //     var svg = d3.select("#throughout_chart");
-    //     var old_g = svg.select("g");
-    //     old_g.remove();
-    //     svg.append("g");
-    //     var new_g = svg.select('g');
-    //
-    //     // Set up zoom support
-    //     var zoom = d3.zoom().on("zoom", function () {
-    //         new_g.attr("transform", d3.event.transform);
-    //     });
-    //     svg.call(zoom);
-    //
-    //     // paint
-    //     var render = new dagreD3.render();
-    //     render(new_g, g);
-    //
-    //     // Center the graph
-    //     // var xCenterOffset = (svg.attr("width") - g.graph().width) / 2;
-    //     // new_g.attr("transform", "translate(" + xCenterOffset + ", 20)");
-    //     // svg.attr("height", g.graph().height + 40);
-    //     var initialScale = 0.75;
-    //     var x_offset = $('#sidebar').width();
-    //     var y_offset = 40;
-    //     svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2 + x_offset, y_offset).scale(initialScale));
-    //     svg.attr('height', g.graph().height * initialScale + y_offset * 2);
-    // }
+    function formatDateTime(inputTime) {
+        var date = new Date(inputTime);
+        var y = date.getFullYear();
+        var m = date.getMonth() + 1;
+        m = m < 10 ? ('0' + m) : m;
+        var d = date.getDate();
+        d = d < 10 ? ('0' + d) : d;
+        var h = date.getHours();
+        h = h < 10 ? ('0' + h) : h;
+        var minute = date.getMinutes();
+        var second = date.getSeconds();
+        minute = minute < 10 ? ('0' + minute) : minute;
+        second = second < 10 ? ('0' + second) : second;
+        return y + '-' + m + '-' + d + ' ' + h + ':' + minute + ':' + second;
+    }
 
     function refresherBuilder(name, param, chart) {
         return function () {
-            console.log("refresh" + name);
-            // query data
-            var ok = [
-                {name: '2016-12-18 6:38:08', value: ['2016-12-18 6:38:08', 60]},
-                {name: '2016-12-18 16:18:18', value: ['2016-12-18 16:18:18', 70]},
-                {name: '2016-12-18 19:18:18', value: ['2016-12-18 19:18:18', 90]}
-            ];
-            var wrong = [
-                {name: '2016-12-18 00:00:00', value: ['2016-12-18 00:00:00', 50]},
-                {name: '2016-12-19 00:00:00', value: ['2016-12-19 00:00:00', 30]}
-            ];
-            var option = {
-                title: {
-                    text: name
-                },
-                tooltip: {
-                    trigger: 'axis',
-                    formatter: function (params) {
-                        params = params[0];
-                        var date = new Date(params.name);
-                        return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' : ' + params.value[1];
-                    },
-                    axisPointer: {
-                        animation: false
+            $.ajax({
+                url: '/graph/prom?' + param,
+                success: function (data) {
+                    var target = [];
+                    var result = deserializeDataSeries(data.data);
+                    for (var dataSerieName in result) {
+                        target.push({
+                            name: dataSerieName,
+                            type: 'line',
+                            showSymbol: false,
+                            hoverAnimation: false,
+                            data: result[dataSerieName]
+                        })
                     }
-                },
-                xAxis: {
-                    type: 'time',
-                    splitLine: {
-                        show: false
-                    }
-                },
-                yAxis: {
-                    type: 'value',
-                    boundaryGap: [0, '100%'],
-                    splitLine: {
-                        show: false
-                    }
-                },
-                series: [{
-                    name: 'ok',
-                    type: 'line',
-                    showSymbol: false,
-                    hoverAnimation: false,
-                    data: ok
-                },
-                    {
-                        name: '.wrong',
-                        type: 'line',
-                        showSymbol: false,
-                        data: wrong,
-                        hoverAnimation: false
-                    }]
-            };
 
-            chart.setOption(option);
+                    var option = {
+                        title: {
+                            text: name
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            formatter: function (params) {
+                                params = params[0];
+                                var date = new Date(params.name);
+                                return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' : ' + params.value[1];
+                            },
+                            axisPointer: {
+                                animation: false
+                            }
+                        },
+                        xAxis: {
+                            type: 'time',
+                            splitLine: {
+                                show: false
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            boundaryGap: [0, '100%'],
+                            splitLine: {
+                                show: false
+                            }
+                        },
+                        series: target
+                    };
+
+                    chart.setOption(option);
+                }
+            });
         }
     }
 
     function add_graph() {
         // get param
-        var paramArr = $('#graphForm').serializeArray();
-        var param = {};
-        var name = 'test';
-        paramArr.forEach(function (element) {
-            if (element.name === 'graphName')
-                name = element.value;
-            else
-                param[element.name] = element.value;
-        });
+        var param = $('#graphForm').serialize();
 
         // add graph dom
         var jdom = $('<div></div>');
@@ -669,6 +575,12 @@
 
         $('#deleteGraph').modal('hide');
     }
+
+    $(document).ready(function () {
+        // 刷新两张图
+        setInterval(draw_response_time_graph, 2 * 1000);
+        setInterval(draw_throughput_graph, 2 * 1000);
+    })
 
 </script>
 </body>

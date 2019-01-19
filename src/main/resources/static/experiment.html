@@ -790,7 +790,7 @@
         stompClient.connect({}, function (frame) {
             // console.tmp('Connected: ' + frame);
             stompClient.subscribe("/detection/operation", refreshLog);
-        })
+        });
 
         // 刷新两张图
         setInterval(draw_response_time_graph, 2 * 1000);

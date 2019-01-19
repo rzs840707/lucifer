@@ -41,6 +41,16 @@ public class Telemetry {
         return deserializeProm(result.getAsJsonObject("data").getAsJsonArray("result"));
     }
 
+    public DataSeries[] queryRange(String query) {
+        String str = queryPromRange(query);
+        JsonObject result = new JsonParser().parse(str).getAsJsonObject();
+        if (!result.get("status").getAsString().equals("success")) {
+            System.out.println(result.get("error"));
+            return new DataSeries[0];
+        }
+        return deserializePromRange(result.getAsJsonObject("data").getAsJsonArray("result"));
+    }
+
     private String queryProm(String query) {
         String url = host + "/api/v1/query";
 
@@ -48,6 +58,23 @@ public class Telemetry {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("query", query);
         params.add("time", String.valueOf(Time.getCurTimeStampMs() / 1000));
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(url).queryParams(params);
+        HttpEntity<String> res = restTemplate.getForEntity(uriComponentsBuilder.build().encode().toUri(), String.class);
+        return res.getBody();
+    }
+
+    private String queryPromRange(String query) {
+        String url = host + "/api/v1/query_range";
+
+        //make up params
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("query", query);
+        long currentTime = Time.getCurTimeStampMs();
+        long startTime = currentTime - 10 * 60 * 1000;
+        params.add("start", String.valueOf(startTime / 1000));
+        params.add("end", String.valueOf(currentTime / 1000));
+        params.add("step", "14");
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(url).queryParams(params);
         HttpEntity<String> res = restTemplate.getForEntity(uriComponentsBuilder.build().encode().toUri(), String.class);
@@ -102,6 +129,31 @@ public class Telemetry {
             List<Pair<Double, String>> values = new ArrayList<>();
             for (int j = 1; j < tmp1.size(); j = j + 2) {
                 Pair<Double, String> value = new Pair<>(tmp1.get(j - 1).getAsDouble(), tmp1.get(j).getAsString());
+                values.add(value);
+            }
+
+            result[i] = new DataSeries(tags, values);
+        }
+        return result;
+    }
+
+    private DataSeries[] deserializePromRange(JsonArray series) {
+        DataSeries[] result = new DataSeries[series.size()];
+        for (int i = 0; i < result.length; ++i) {
+            JsonObject dataSerie = series.get(i).getAsJsonObject();
+
+            //获取tags
+            JsonObject tmp = dataSerie.getAsJsonObject("metric");
+            Map<String, String> tags = new HashMap<>();
+            for (Map.Entry<String, JsonElement> entry : tmp.entrySet())
+                tags.put(entry.getKey(), entry.getValue().getAsString());
+
+            //获取值
+            JsonArray tmp1 = dataSerie.getAsJsonArray("values");
+            List<Pair<Double, String>> values = new ArrayList<>();
+            for (int j = 1; j < tmp1.size(); ++j) {
+                JsonArray pair = tmp1.get(j).getAsJsonArray();
+                Pair<Double, String> value = new Pair<>(pair.get(0).getAsDouble(), pair.get(1).getAsString());
                 values.add(value);
             }
 

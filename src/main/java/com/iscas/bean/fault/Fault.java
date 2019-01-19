@@ -16,7 +16,7 @@ public class Fault {
     }
 
     public JsonElement toJson() {
-        String str = "{\"destination\":{\"host\":" + this.tarService + ",\"subset\":\"" + this.tarVersion + "\"}}";
+        String str = "{\"destination\":{\"host\":\"" + this.tarService + "\",\"subset\":\"" + this.tarVersion + "\"}}";
         JsonArray tmp = new JsonArray();
         tmp.add(new JsonParser().parse(str));
         JsonObject result = new JsonObject();
