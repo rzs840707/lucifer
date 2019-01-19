@@ -2,6 +2,7 @@ package com.iscas.service;
 
 import com.google.gson.*;
 import com.iscas.bean.fault.Fault;
+import com.iscas.entity.Route;
 import com.iscas.util.Cmd;
 import org.springframework.stereotype.Service;
 
@@ -156,7 +157,7 @@ public class Injector {
         String tmp = Cmd.execForStdWithPipe("kubectl  get virtualservices | grep -v NAME | awk '{print $1 \";\"}'");
         if (!tmp.isEmpty()) {
             String[] tmpArr = tmp.split(";");
-            for (int i = 1; i < tmpArr.length; ++i) {
+            for (int i = 0; i < tmpArr.length; ++i) {
                 String name = tmpArr[i];
                 tmp = Cmd.execForStd("kubectl get virtualservice " + name + " -o json");
                 JsonObject root = new JsonParser().parse(tmp).getAsJsonObject();
@@ -193,6 +194,126 @@ public class Injector {
                     fault.setName(root.getAsJsonObject("metadata").get("name").getAsString());
                     fault.setIndex(j);
                     r.add(fault);
+                }
+            }
+        }
+        return r;
+    }
+
+    public void injectRoute(String tar, String tarVersion, int percent) {
+        //添加总体的参数
+        JsonObject root = new JsonObject();
+        root.add("apiVersion", new JsonPrimitive("networking.istio.io/v1alpha3"));
+        root.add("kind", new JsonPrimitive("VirtualService"));
+        root.add("metadata", new JsonParser().parse("{\"name\":\"" + tar + "\"}"));
+        JsonObject spec = new JsonObject();
+        spec.add("hosts", new JsonParser().parse("[\"" + tar + "\"]"));
+        JsonArray http = new JsonArray();
+        spec.add("http", http);
+        root.add("spec", spec);
+
+        // 查询已有虚服务
+        JsonArray rules = queryRules(tar);
+        if (rules == null) // 不存在已有虚服务
+        {
+            String str = "{\"destination\":{\"host\":\"" + tar + "\",\"subset\":\"" + tarVersion + "\"}}";
+            JsonObject route = new JsonParser().parse(str).getAsJsonObject();
+            route.add("weight", new JsonPrimitive(percent));
+            JsonArray routes = new JsonArray();
+            routes.add(route);
+            JsonObject rule = new JsonObject();
+            rule.add("route", routes);
+            http.add(rule);
+        } else {
+            for (int i = 0; i < rules.size() - 1; ++i) {
+                http.add(rules.get(i));
+            }
+            JsonObject lastRule = rules.get(rules.size() - 1).getAsJsonObject();
+            if (lastRule.get("fault") == null && lastRule.get("match") == null) {
+                String str = "{\"destination\":{\"host\":\"" + tar + "\",\"subset\":\"" + tarVersion + "\"}}";
+                JsonObject route = new JsonParser().parse(str).getAsJsonObject();
+                route.add("weight", new JsonPrimitive(percent));
+                lastRule.getAsJsonArray("route").add(route);
+                http.add(lastRule);
+            } else {
+                http.add(lastRule);
+                String str = "{\"destination\":{\"host\":\"" + tar + "\",\"subset\":\"" + tarVersion + "\"}}";
+                JsonObject route = new JsonParser().parse(str).getAsJsonObject();
+                route.add("weight", new JsonPrimitive(percent));
+                JsonArray routes = new JsonArray();
+                routes.add(route);
+                JsonObject rule = new JsonObject();
+                rule.add("route", routes);
+                http.add(rule);
+            }
+        }
+
+        // 注入
+        Cmd.execWithPipe("echo '" + root.toString() + "' | kubectl apply -f -");
+    }
+
+    public void deleteRoute(String name, int index) {
+        //添加总体的参数
+        JsonObject root = new JsonObject();
+        root.add("apiVersion", new JsonPrimitive("networking.istio.io/v1alpha3"));
+        root.add("kind", new JsonPrimitive("VirtualService"));
+        root.add("metadata", new JsonParser().parse("{\"name\":\"" + name + "\"}"));
+        JsonObject spec = new JsonObject();
+        spec.add("hosts", new JsonParser().parse("[\"" + name + "\"]"));
+        JsonArray http = new JsonArray();
+        spec.add("http", http);
+        root.add("spec", spec);
+
+        JsonArray rules = queryRules(name);
+        for (int i = 0; i < rules.size() - 1; ++i) {
+            http.add(rules.get(i));
+        }
+        JsonObject lastRule = rules.get(rules.size() - 1).getAsJsonObject();
+        if (lastRule.get("fault") == null && lastRule.get("match") == null) {
+            JsonArray routes = lastRule.getAsJsonArray("route");
+            routes.remove(index);
+            if (routes.size() > 0) {
+                lastRule.add("route", routes);
+                http.add(lastRule);
+            }
+        } else {
+            http.add(lastRule);
+        }
+        // 注入
+        if (http.size() == 0)
+            deleteByName(name);
+        else
+            Cmd.execWithPipe("echo '" + root.toString() + "' | kubectl apply -f -");
+    }
+
+    public List<Route> queryAllRoutes() {
+        List<Route> r = new ArrayList<>();
+        String tmp = Cmd.execForStdWithPipe("kubectl  get virtualservices | grep -v NAME | awk '{print $1 \";\"}'");
+        if (!tmp.isEmpty()) {
+            String[] tmpArr = tmp.split(";");
+            for (int i = 0; i < tmpArr.length; ++i) {
+                String name = tmpArr[i];
+                tmp = Cmd.execForStd("kubectl get virtualservice " + name + " -o json");
+                JsonObject root = new JsonParser().parse(tmp).getAsJsonObject();
+                JsonArray http = root.getAsJsonObject("spec").getAsJsonArray("http");
+                if (http.size() > 0) {
+                    JsonObject lastRule = http.get(http.size() - 1).getAsJsonObject();
+                    if (lastRule.get("fault") == null && lastRule.get("match") == null) {
+                        JsonArray routes = lastRule.getAsJsonArray("route");
+                        for (int j = 0; j < routes.size(); ++j) {
+                            JsonObject route = routes.get(j).getAsJsonObject();
+                            Route tmpRoute = new Route();
+                            tmpRoute.setIndex(j);
+                            tmpRoute.setTar(route.getAsJsonObject("destination").get("host").getAsString());
+                            tmpRoute.setTarVersion(route.getAsJsonObject("destination").get("subset").getAsString());
+                            if (route.get("weight") == null)
+                                tmpRoute.setPercent(100);
+                            else
+                                tmpRoute.setPercent(route.get("weight").getAsInt());
+                            tmpRoute.setName(name);
+                            r.add(tmpRoute);
+                        }
+                    }
                 }
             }
         }

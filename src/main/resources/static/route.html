@@ -40,83 +40,44 @@
 <body>
 
 <!-- modals -->
-<div class="modal fade" id="addGraph" tabindex="-1" role="dialog"
+<div class="modal fade" id="addRoute" tabindex="-1" role="dialog"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">添加图</h5>
+                <h5 class="modal-title">添加路由规则</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <form id="graphForm">
+                <form id="routeForm">
                     <div class="form-group row">
-                        <label for="graph_name" class="col-4 col-form-label">图名称</label>
+                        <label for="tar" class="col-4 col-form-label">目标服务</label>
                         <div class="col-8">
-                            <input type="text" class="form-control" id="graph_name" name="graphName"
-                                   placeholder="graph1">
+                            <input type="text" class="form-control" id="tar" name="tar"
+                                   value="reviews1">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="src_svc" class="col-4 col-form-label">源服务</label>
+                        <label for="tarVersion" class="col-4 col-form-label">版本</label>
                         <div class="col-8">
-                            <input type="text" class="form-control" id="src_svc" name="srcSvc"
-                                   placeholder="source service" value="productpage">
+                            <input type="text" class="form-control" id="tarVersion" name="tarVersion"
+                                   value="v1">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="tar_svc" class="col-4 col-form-label">目标服务</label>
+                        <label for="percent" class="col-4 col-form-label">百分比</label>
                         <div class="col-8">
-                            <input type="text" class="form-control" id="tar_svc" name='tarSvc'
-                                   placeholder="target service" value="details">
-                        </div>
-                    </div>
-                    <div class="form-group row">
-                        <label for="metric" class="col-4 col-form-label">指标</label>
-                        <div class="col-8">
-                            <select id="metric" class="form-control" name="metric">
-                                <option selected value="rate">请求速率</option>
-                                <option value="responseTime">响应时间</option>
-                                <option value="successRate">成功率</option>
-                                <option value="failRate">失败率</option>
-                            </select>
+                            <input type="number" class="form-control" id="percent" name='percent'
+                                   value="100">
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" onclick="add_graph()">确认</button>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="deleteGraph" tabindex="-1" role="dialog"
-     aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">删除图</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form>
-                    <div class="form-group row">
-                        <label for="graph_name_for_delete" class="col-4 col-form-label">图名称</label>
-                        <div class="col-8">
-                            <input type="text" class="form-control" id="graph_name_for_delete" name="graphName"
-                                   placeholder="graph1">
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" onclick="delete_freshers()">确认</button>
+                <button type="button" class="btn btn-primary" onclick="addRoute()">确认</button>
             </div>
         </div>
     </div>
@@ -232,15 +193,14 @@
 
             <main id="tab_frame" role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">监控</h1>
+                    <h1 class="h2">版本分流</h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
                         <div class="btn-group mr-2">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="clear_freshers()">暂停
+                            <button class="btn btn-sm btn-outline-secondary" onclick="exportAll()">导出
                             </button>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="resume_freshers()">继续
                             </button>
                             <button class="btn btn-sm btn-outline-secondary" data-toggle="modal"
-                                    data-target="#addGraph">添加
+                                    data-target="#addRoute">添加
                             </button>
                         </div>
                     </div>
@@ -261,6 +221,20 @@
                     </div>
                 </div>
 
+                <table class="table table-striped table-hover">
+                    <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">虚服务</th>
+                        <th scope="col">索引</th>
+                        <th scope="col">服务名称</th>
+                        <th scope="col">版本</th>
+                        <th scope="col">百分比</th>
+                        <th scope="col">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="routeTable">
+                    </tbody>
+                </table>
             </main> <!-- end of frame -->
         </div>
     </div>
@@ -362,7 +336,7 @@
 
     function draw_response_time_graph() {
         $.ajax({
-            url: '/graph/responseTimeGraph',
+            url: '/exp/responseTimeGraph',
             success: function (data) {
                 var graph = deserializeGraph(data);
                 paintResponseGraph("#response_chart", graph);
@@ -416,7 +390,7 @@
 
     function draw_throughput_graph() {
         $.ajax({
-            url: '/graph/throughputGraph',
+            url: '/exp/throughputGraph',
             success: function (data) {
                 var graph = deserializeGraph(data);
                 paintThroughputGraph("#throughout_chart", graph);
@@ -424,163 +398,198 @@
         });
     }
 
-    function deserializeDataSeries(data) {
-        var result = {};
-        var tmp;
-        data.forEach(function (dataSerie) {
-            tmp = [];
-            dataSerie.data.forEach(function (pair) {
-                tmp.push({
-                    name: formatDateTime(pair.key * 1000),
-                    value: [
-                        formatDateTime(pair.key * 1000),
-                        parseFloat(pair.value).toFixed(2)]
-                });
-            });
-            result[dataSerie.tags.response_code] = tmp;
-        });
-        return result;
-    }
+    // function draw_response_time_graph() {
+    //     console.log("draw response time graph");
+    //     // query data
+    //     var nodes = ['A', 'B', 'C', 'E', 'D', 'F'];
+    //     var links = [{src: 'A', tar: 'B', label: '0.0'},
+    //         {src: 'A', tar: 'C', label: '1.5'},
+    //         {src: 'A', tar: 'D', label: '2.5'},
+    //         {src: 'A', tar: 'E', label: '3.5'},
+    //         {src: 'D', tar: 'F', label: '4.5'},
+    //         {src: 'E', tar: 'F', label: '5.5'}];
+    //
+    //     // create a graph
+    //     var g = new dagreD3.graphlib.Graph().setGraph({}).setDefaultEdgeLabel();
+    //
+    //     // add nodes and edges
+    //     nodes.forEach(function (node) {
+    //         g.setNode(node, {label: node, class: "node"});
+    //     });
+    //     links.forEach(function (link) {
+    //         e = {label: link.label, curve: d3.curveBasis};
+    //         if (link.label > 5)
+    //             e.class = 'edge-warning';
+    //         else
+    //             e.class = 'edge-normal';
+    //         g.setEdge(link.src, link.tar, e);
+    //     });
+    //
+    //     // remove old graph and add new graph
+    //     var svg = d3.select("#response_chart");
+    //     var old_g = svg.select("g");
+    //     old_g.remove();
+    //     svg.append("g");
+    //     var new_g = svg.select('g');
+    //
+    //     // Set up zoom support
+    //     var zoom = d3.zoom().on("zoom", function () {
+    //         new_g.attr("transform", d3.event.transform);
+    //     });
+    //     svg.call(zoom);
+    //
+    //     // paint
+    //     var render = new dagreD3.render();
+    //     render(new_g, g);
+    //
+    //     // Center the graph
+    //     // var xCenterOffset = (svg.attr("width") - g.graph().width) / 2;
+    //     // new_g.attr("transform", "translate(" + xCenterOffset + ", 20)");
+    //     // svg.attr("height", g.graph().height + 40);
+    //     var initialScale = 0.75;
+    //     var x_offset = $('#sidebar').width();
+    //     var y_offset = 40;
+    //     svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2 + x_offset, y_offset).scale(initialScale));
+    //     svg.attr('height', g.graph().height * initialScale + y_offset * 2);
+    // }
+    //
+    // function draw_throughput_graph() {
+    //     console.log("draw throughout graph");
+    //     // query data
+    //     var nodes = ['A', 'B', 'C', 'E', 'D', 'F'];
+    //     var links = [{src: 'A', tar: 'B', label: '0.0'},
+    //         {src: 'A', tar: 'C', label: '1.5'},
+    //         {src: 'A', tar: 'D', label: '2.5'},
+    //         {src: 'A', tar: 'E', label: '3.5'},
+    //         {src: 'D', tar: 'F', label: '4.5'},
+    //         {src: 'E', tar: 'F', label: '5.5'}];
+    //
+    //     // create a graph
+    //     var g = new dagreD3.graphlib.Graph().setGraph({}).setDefaultEdgeLabel();
+    //
+    //     // add nodes and edges
+    //     nodes.forEach(function (node) {
+    //         g.setNode(node, {label: node, class: "node"});
+    //     });
+    //     links.forEach(function (link) {
+    //         e = {label: link.label, curve: d3.curveBasis};
+    //         if (link.label < 0.1)
+    //             e.class = 'edge-warning';
+    //         else
+    //             e.class = 'edge-normal';
+    //         g.setEdge(link.src, link.tar, e);
+    //     });
+    //
+    //     // remove old graph and add new graph
+    //     var svg = d3.select("#throughout_chart");
+    //     var old_g = svg.select("g");
+    //     old_g.remove();
+    //     svg.append("g");
+    //     var new_g = svg.select('g');
+    //
+    //     // Set up zoom support
+    //     var zoom = d3.zoom().on("zoom", function () {
+    //         new_g.attr("transform", d3.event.transform);
+    //     });
+    //     svg.call(zoom);
+    //
+    //     // paint
+    //     var render = new dagreD3.render();
+    //     render(new_g, g);
+    //
+    //     // Center the graph
+    //     // var xCenterOffset = (svg.attr("width") - g.graph().width) / 2;
+    //     // new_g.attr("transform", "translate(" + xCenterOffset + ", 20)");
+    //     // svg.attr("height", g.graph().height + 40);
+    //     var initialScale = 0.75;
+    //     var x_offset = $('#sidebar').width();
+    //     var y_offset = 40;
+    //     svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2 + x_offset, y_offset).scale(initialScale));
+    //     svg.attr('height', g.graph().height * initialScale + y_offset * 2);
+    // }
 
-    function formatDateTime(inputTime) {
-        var date = new Date(inputTime);
-        var y = date.getFullYear();
-        var m = date.getMonth() + 1;
-        m = m < 10 ? ('0' + m) : m;
-        var d = date.getDate();
-        d = d < 10 ? ('0' + d) : d;
-        var h = date.getHours();
-        h = h < 10 ? ('0' + h) : h;
-        var minute = date.getMinutes();
-        var second = date.getSeconds();
-        minute = minute < 10 ? ('0' + minute) : minute;
-        second = second < 10 ? ('0' + second) : second;
-        return y + '-' + m + '-' + d + ' ' + h + ':' + minute + ':' + second;
-    }
-
-    function refresherBuilder(name, param, chart) {
-        return function () {
-            $.ajax({
-                url: '/graph/prom?' + param,
-                success: function (data) {
-                    var target = [];
-                    var result = deserializeDataSeries(data.data);
-                    for (var dataSerieName in result) {
-                        target.push({
-                            name: dataSerieName,
-                            type: 'line',
-                            showSymbol: false,
-                            hoverAnimation: false,
-                            data: result[dataSerieName]
-                        })
-                    }
-
-                    var option = {
-                        title: {
-                            text: name
-                        },
-                        tooltip: {
-                            trigger: 'axis',
-                            formatter: function (params) {
-                                params = params[0];
-                                var date = new Date(params.name);
-                                return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' : ' + params.value[1];
-                            },
-                            axisPointer: {
-                                animation: false
-                            }
-                        },
-                        xAxis: {
-                            type: 'time',
-                            splitLine: {
-                                show: false
-                            }
-                        },
-                        yAxis: {
-                            type: 'value',
-                            boundaryGap: [0, '100%'],
-                            splitLine: {
-                                show: false
-                            }
-                        },
-                        series: target
-                    };
-
-                    chart.setOption(option);
+    $.fn.serializeObject = function () {
+        var o = {};
+        var a = this.serializeArray();
+        $.each(a, function () {
+            if (o[this.name] !== undefined) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
                 }
-            });
-        }
-    }
-
-    function add_graph() {
-        // get param
-        var param = $('#graphForm').serialize();
-
-        // add graph dom
-        var jdom = $('<div></div>');
-        jdom.css('height', '400px');
-        jdom.css('width', '100%');
-        jdom.attr('id', name);
-        $('#tab_frame').append(jdom);
-
-        // init graph
-        var chart = echarts.init(jdom.get(0));
-        var refesher = refresherBuilder(name, param, chart);
-        refesher();
-
-        // refresh
-        var id = setInterval(refesher, 1000);
-        freshers[name] = {
-            'id': id,
-            'fresher': refesher
-        };
-
-        $('#addGraph').modal('hide');
-    }
-
-    function clear_freshers() {
-        for (var name in freshers) {
-            var id = freshers[name]['id'];
-            clearInterval(id);
-            freshers[name]['id'] = null;
-        }
-    }
-
-    function resume_freshers() {
-        for (var name in freshers) {
-            if (freshers[name]['id'] == null) {
-                var id = setInterval(freshers[name]['fresher'], 1000);
-                freshers[name]['id'] = id;
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
             }
-        }
+        });
+        return o;
+    };
+
+    function addRoute() {
+        $.ajax({
+            type: "POST",
+            url: "/route/route",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify($("#routeForm").serializeObject()),
+            dataType: "json",
+            success: function () {
+                refresh();
+                alert("添加成功")
+            }
+        });
+        $("#addRoute").modal('hide');
+        refresh();
     }
 
-    function delete_freshers() {
-        var name = $('#graph_name_for_delete').val();
-        if (freshers[name] == undefined)
-            return;
+    function deleteRoute(dom) {
+        var jdoms = $(dom).parent().siblings();
+        $.ajax({
+            url: "/route/RouteDelete?name=" + jdoms.eq(0).text() + "&&index=" + jdoms.eq(1).text(),
+            success: function () {
+                refresh();
+                alert("删除成功")
+            }
+        });
+        refresh();
+    }
 
-        // stop refresh
-        var fresher = freshers[name];
-        if (fresher['id'] != null)
-            clearInterval(fresher['id']);
+    function refresh() {
+        $.ajax({
+            url: "/route/routes",
+            success: function (data) {
+                var list = $("#routeTable").empty();
+                data.data.forEach(function (value) {
+                    // 创建列表行
+                    var line = $("<tr></tr>");
+                    line.append($("<th scope=\"row\" class=\"align-middle\">" + value.name + "</th>"));
+                    line.append($("<td class=\"align-middle\">" + value.index + "</td>"));
+                    line.append($("<td class=\"align-middle\">" + value.tar + "</td>"));
+                    line.append($("<td class=\"align-middle\">" + value.tarVersion + "</td>"));
+                    line.append($("<td class=\"align-middle\">" + value.percent + "</td>"));
+                    line.append($("<td class=\"justify-content-center\">" +
+                        "<button type=\"button\" class=\"btn btn-sm btn-outline-info\" onclick='exportByName(this)'>导出</button>" +
+                        "<button type=\"button\" class=\"btn btn-sm btn-outline-danger\" onclick='deleteRoute(this)'>删除</button>" +
+                        "</td>"));
+                    list.append(line);
+                })
+            }
+        });
+    }
 
-        // remove dom
-        var jdom = $('#' + name);
-        if (jdom.length > 0)
-            jdom.remove();
+    function exportByName(dom) {
+        var jdoms = $(dom).parent().siblings();
+        window.open("/route/export/" + jdoms.eq(0).text());
+    }
 
-        //remove record
-        delete fresher[name];
-
-        $('#deleteGraph').modal('hide');
+    function exportAll() {
+        window.open("/route/exportAll");
     }
 
     $(document).ready(function () {
-        // 刷新两张图
+        refresh();
+
         setInterval(draw_response_time_graph, 2 * 1000);
         setInterval(draw_throughput_graph, 2 * 1000);
-    })
+    });
 
 </script>
 </body>
