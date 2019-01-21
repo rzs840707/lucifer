@@ -34,7 +34,7 @@ public class Jaeger implements TraceTracker {
         params.put("limit", String.valueOf(num));
 //        params.put("lookback",lookback);
         long curTS = Time.getCurTimeStampMs() * 1000;
-        params.put("end", String.valueOf(curTS));
+        params.put("end", String.valueOf(curTS - 5 * 1000 * 1000)); //防止数据刷新不完全
         params.put("start", String.valueOf(curTS - lookback * 1000 * 1000));
 
         //查询并反序列化

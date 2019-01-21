@@ -17,7 +17,7 @@ def test(urls):
                 message += "详情信息无法获取;"
             if "Sorry, product reviews are currently unavailable for this book." in r:
                 message += "评论信息无法获取;"
-            if "Sorry, product ratings are currently unavailable for this book." in r:
+            if "Ratings service is currently unavailable" in r:
                 message += "评分信息无法获取;"
 
         if len(message) != 0:

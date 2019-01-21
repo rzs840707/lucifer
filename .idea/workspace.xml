@@ -2,18 +2,22 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ce45cd8a-9b3e-4816-be01-e4c1fa183f54" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/iscas/controller/RouteController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/iscas/entity/Route.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/static/route.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/TestRandom2.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/iscas/service/Injector.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/iscas/service/Injector.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/configuration.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/configuration.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/details.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/details.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/experiment.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/experiment.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/fault.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/fault.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/graphs.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/graphs.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/history.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/history.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/static/mylogs/detect_1.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/iscas/bean/Configuration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/iscas/bean/Configuration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/iscas/service/Jaeger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/iscas/service/Jaeger.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/iscas/strategy/Heuristic.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/iscas/strategy/Heuristic.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/assertions/productpage.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/assertions/productpage.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/assertions/productpage.py" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/assertions/productpage.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/iscas/bean/Configuration.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/iscas/bean/Configuration.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/iscas/service/Jaeger.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/iscas/service/Jaeger.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/iscas/strategy/Heuristic.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/iscas/strategy/Heuristic.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/details.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/static/details.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/experiment.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/static/experiment.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/fault.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/static/fault.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/graphs.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/static/graphs.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/history.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/static/history.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/route.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/static/route.html" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -41,9 +45,10 @@
     <session id="119875505">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="17" />
+          <entry key="project.closed" value="18" />
           <entry key="project.open.time.0" value="3" />
           <entry key="project.open.time.1" value="4" />
+          <entry key="project.open.time.16" value="1" />
           <entry key="project.open.time.30" value="1" />
           <entry key="project.open.time.34" value="1" />
           <entry key="project.open.time.36" value="1" />
@@ -52,14 +57,14 @@
           <entry key="project.open.time.41" value="1" />
           <entry key="project.open.time.6" value="2" />
           <entry key="project.open.time.8" value="3" />
-          <entry key="project.opened" value="18" />
+          <entry key="project.opened" value="19" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="48" />
           <entry key="html" value="5349" />
-          <entry key="java" value="50030" />
+          <entry key="java" value="53144" />
           <entry key="log" value="6" />
           <entry key="properties" value="27" />
           <entry key="xml" value="33" />
@@ -68,7 +73,7 @@
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="HTML" value="5349" />
-          <entry key="JAVA" value="50030" />
+          <entry key="JAVA" value="53144" />
           <entry key="Log" value="6" />
           <entry key="PLAIN_TEXT" value="48" />
           <entry key="Properties" value="27" />
@@ -81,11 +86,11 @@
           <entry key="css" value="1" />
           <entry key="ftl" value="1" />
           <entry key="html" value="46" />
-          <entry key="java" value="378" />
+          <entry key="java" value="385" />
           <entry key="js" value="1" />
           <entry key="log" value="9" />
           <entry key="properties" value="7" />
-          <entry key="py" value="9" />
+          <entry key="py" value="10" />
           <entry key="xml" value="7" />
         </counts>
       </usages-collector>
@@ -95,12 +100,12 @@
           <entry key="CSS" value="1" />
           <entry key="FTL" value="1" />
           <entry key="HTML" value="46" />
-          <entry key="JAVA" value="378" />
+          <entry key="JAVA" value="385" />
           <entry key="JavaScript" value="1" />
           <entry key="Log" value="6" />
           <entry key="PLAIN_TEXT" value="6" />
           <entry key="Properties" value="7" />
-          <entry key="Python" value="6" />
+          <entry key="Python" value="7" />
           <entry key="XML" value="7" />
         </counts>
       </usages-collector>
@@ -109,46 +114,89 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/resources/static/fault.html">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/iscas/strategy/Heuristic.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="271">
-              <caret line="269" column="39" selection-start-line="269" selection-start-column="39" selection-end-line="269" selection-end-column="39" />
+            <state relative-caret-position="578">
+              <caret line="182" column="24" lean-forward="true" selection-start-line="182" selection-start-column="24" selection-end-line="182" selection-end-column="24" />
+              <folding>
+                <element signature="e#41646#41647#0" expanded="true" />
+                <element signature="e#41678#41679#0" expanded="true" />
+                <element signature="e#41722#41723#0" expanded="true" />
+                <element signature="e#41749#41750#0" expanded="true" />
+                <element signature="e#41798#41799#0" expanded="true" />
+                <element signature="e#41825#41826#0" expanded="true" />
+                <element signature="e#41866#41867#0" expanded="true" />
+                <element signature="e#41892#41893#0" expanded="true" />
+                <element signature="e#41937#41938#0" expanded="true" />
+                <element signature="e#41964#41965#0" expanded="true" />
+                <element signature="e#42005#42006#0" expanded="true" />
+                <element signature="e#42037#42038#0" expanded="true" />
+                <element signature="e#42085#42086#0" expanded="true" />
+                <element signature="e#42124#42125#0" expanded="true" />
+                <element signature="e#42167#42168#0" expanded="true" />
+                <element signature="e#42201#42202#0" expanded="true" />
+                <element signature="e#42239#42240#0" expanded="true" />
+                <element signature="e#42265#42266#0" expanded="true" />
+                <element signature="e#42294#42295#0" expanded="true" />
+                <element signature="e#42319#42320#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/resources/static/graphs.html">
+        <entry file="file://$PROJECT_DIR$/src/test/java/TestRandom.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="203">
-              <caret line="234" column="37" selection-start-line="234" selection-start-column="37" selection-end-line="234" selection-end-column="37" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/resources/static/history.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="356">
-              <caret line="126" column="25" selection-start-line="126" selection-start-column="25" selection-end-line="126" selection-end-column="25" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/resources/static/route.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1886">
-              <caret line="195" column="39" selection-start-line="195" selection-start-column="39" selection-end-line="195" selection-end-column="39" />
+            <state relative-caret-position="291">
+              <caret line="93" column="31" lean-forward="true" selection-start-line="93" selection-start-column="31" selection-end-line="93" selection-end-column="31" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/test/java/TestRandom2.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="189">
+              <caret line="89" column="24" lean-forward="true" selection-start-line="89" selection-start-column="24" selection-end-line="89" selection-end-column="24" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/iscas/service/Jaeger.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="329">
+              <caret line="45" column="9" lean-forward="true" selection-start-line="45" selection-start-column="9" selection-end-line="45" selection-end-column="9" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/iscas/bean/Assertion.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="102">
+              <caret line="6" lean-forward="true" selection-start-line="6" selection-end-line="6" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/iscas/bean/Configuration.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="221">
+              <caret line="44" column="28" lean-forward="true" selection-start-line="44" selection-start-column="28" selection-end-line="44" selection-end-column="28" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/resources/static/configuration.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="356">
-              <caret line="60" column="64" lean-forward="true" selection-start-line="60" selection-start-column="64" selection-end-line="60" selection-end-column="64" />
+            <state relative-caret-position="833">
+              <caret line="49" column="24" selection-start-line="32" selection-start-column="12" selection-end-line="49" selection-end-column="24" />
             </state>
           </provider>
         </entry>
@@ -156,8 +204,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/resources/static/details.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="475">
-              <caret line="204" column="25" selection-start-line="204" selection-start-column="25" selection-end-line="204" selection-end-column="25" />
+            <state relative-caret-position="850">
+              <caret line="50" column="24" selection-start-line="50" selection-start-column="24" selection-end-line="50" selection-end-column="24" />
             </state>
           </provider>
         </entry>
@@ -165,8 +213,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/resources/static/experiment.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="186">
-              <caret line="144" column="25" selection-start-line="144" selection-start-column="25" selection-end-line="144" selection-end-column="25" />
+            <state relative-caret-position="1156">
+              <caret line="68" column="24" selection-start-line="68" selection-start-column="24" selection-end-line="68" selection-end-column="24" />
             </state>
           </provider>
         </entry>
@@ -183,12 +231,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>&lt;th scope=&quot;row&quot; class=&quot;align-middle&quot;&gt;1&lt;/th&gt;</find>
-      <find>结果</find>
-      <find>最大注入次数</find>
-      <find>bulkheadDuration1</find>
-      <find>次/秒</find>
-      <find>重置</find>
       <find>config</find>
       <find>configu</find>
       <find>deserializeGraph</find>
@@ -213,6 +255,12 @@
       <find>addRoute</find>
       <find>fault</find>
       <find>lastR</find>
+      <find>Home</find>
+      <find>home</find>
+      <find>thre</find>
+      <find>sleep</find>
+      <find>failedIPS</find>
+      <find>+5</find>
     </findStrings>
     <replaceStrings>
       <replace>j</replace>
@@ -228,11 +276,7 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/main/java/com/iscas/entity/Graph.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/iscas/util/Time.java" />
-        <option value="$PROJECT_DIR$/src/main/resources/assertions/productpage.py" />
         <option value="$PROJECT_DIR$/src/main/java/com/iscas/bean/Assertion.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/iscas/service/Jaeger.java" />
         <option value="$PROJECT_DIR$/src/test/java/Test.java" />
         <option value="$PROJECT_DIR$/src/main/resources/static/log/test1.log" />
         <option value="$PROJECT_DIR$/src/main/resources/static/mylogs/test.log" />
@@ -252,7 +296,6 @@
         <option value="$PROJECT_DIR$/src/main/java/com/iscas/dao/RetryResultDAO.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/iscas/dao/TimeoutResultDAO.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/iscas/dao/BulkHeadResultDAO.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/iscas/strategy/Heuristic.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/iscas/controller/DetailsController.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/iscas/bean/result/Summary.java" />
         <option value="$PROJECT_DIR$/src/main/resources/history.html" />
@@ -260,7 +303,6 @@
         <option value="$PROJECT_DIR$/src/main/java/com/iscas/dao/SummaryDAO.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/iscas/service/History.java" />
         <option value="$PROJECT_DIR$/src/test/java/TestAlgrothrm.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/iscas/bean/Configuration.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/iscas/controller/ConfigurationController.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/iscas/controller/ExperimentController.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/iscas/controller/GraphController.java" />
@@ -272,13 +314,19 @@
         <option value="$PROJECT_DIR$/src/main/java/com/iscas/entity/Route.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/iscas/controller/RouteController.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/iscas/service/Injector.java" />
+        <option value="$PROJECT_DIR$/src/main/resources/static/configuration.html" />
         <option value="$PROJECT_DIR$/src/main/resources/static/details.html" />
         <option value="$PROJECT_DIR$/src/main/resources/static/experiment.html" />
-        <option value="$PROJECT_DIR$/src/main/resources/static/history.html" />
         <option value="$PROJECT_DIR$/src/main/resources/static/fault.html" />
         <option value="$PROJECT_DIR$/src/main/resources/static/graphs.html" />
+        <option value="$PROJECT_DIR$/src/main/resources/static/history.html" />
         <option value="$PROJECT_DIR$/src/main/resources/static/route.html" />
-        <option value="$PROJECT_DIR$/src/main/resources/static/configuration.html" />
+        <option value="$PROJECT_DIR$/src/main/java/com/iscas/bean/Configuration.java" />
+        <option value="$PROJECT_DIR$/src/main/resources/assertions/productpage.py" />
+        <option value="$PROJECT_DIR$/src/main/java/com/iscas/service/Jaeger.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/iscas/strategy/Heuristic.java" />
+        <option value="$PROJECT_DIR$/src/test/java/TestRandom.java" />
+        <option value="$PROJECT_DIR$/src/test/java/TestRandom2.java" />
       </list>
     </option>
   </component>
@@ -433,6 +481,14 @@
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="resources" type="462c0819:PsiDirectoryNode" />
+              <item name="assertions" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="lucifer" type="b2602c69:ProjectViewProjectNode" />
+              <item name="lucifer" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
               <item name="static" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -463,7 +519,7 @@
     <property name="RequestMappingsPanelWidth1" value="75" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1547898638472" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1548055030503" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="project.structure.last.edited" value="Libraries" />
@@ -502,16 +558,17 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Spring Boot.DemoApplication">
-    <configuration name="Assertion" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="com.iscas.bean.Assertion" />
+  <component name="RunManager" selected="Application.TestRandom">
+    <configuration name="TestRandom" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="TestRandom" />
       <module name="lucifer" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.iscas.bean.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestRandom2" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="TestRandom2" />
+      <module name="lucifer" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -520,16 +577,6 @@
       <module name="lucifer" />
       <option name="PACKAGE_NAME" value="" />
       <option name="MAIN_CLASS_NAME" value="TestAlgrothrm" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="TestAlgrothrm.test" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="lucifer" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="MAIN_CLASS_NAME" value="TestAlgrothrm" />
-      <option name="METHOD_NAME" value="test" />
-      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -559,18 +606,18 @@
     </configuration>
     <list>
       <item itemvalue="Spring Boot.DemoApplication" />
-      <item itemvalue="Application.Assertion" />
       <item itemvalue="JUnit.TestAlgrothrm" />
-      <item itemvalue="JUnit.TestAlgrothrm.test" />
       <item itemvalue="JUnit.TestAlgrothrm.test1" />
+      <item itemvalue="Application.TestRandom" />
+      <item itemvalue="Application.TestRandom2" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.TestRandom" />
+        <item itemvalue="Application.TestRandom2" />
         <item itemvalue="Spring Boot.DemoApplication" />
         <item itemvalue="JUnit.TestAlgrothrm" />
         <item itemvalue="JUnit.TestAlgrothrm.test1" />
-        <item itemvalue="JUnit.TestAlgrothrm.test" />
-        <item itemvalue="Application.Assertion" />
       </list>
     </recent_temporary>
   </component>
@@ -601,7 +648,8 @@
       <workItem from="1547775161099" duration="16811000" />
       <workItem from="1547860072205" duration="18624000" />
       <workItem from="1547880176499" duration="128000" />
-      <workItem from="1547880517462" duration="16055000" />
+      <workItem from="1547880517462" duration="16419000" />
+      <workItem from="1548030264931" duration="14603000" />
     </task>
     <servers />
   </component>
@@ -638,7 +686,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="252401000" />
+    <option name="totallyTimeSpent" value="267368000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -653,7 +701,7 @@
     <frame x="67" y="25" width="1613" height="1025" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49924356" visible="true" weight="0.2374284" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49924356" visible="true" weight="0.23997454" />
       <window_info id="Structure" order="1" sideWeight="0.50075644" side_tool="true" weight="0.23233609" />
       <window_info id="Designer" order="2" />
       <window_info id="Image Layers" order="3" />
@@ -663,16 +711,16 @@
       <window_info id="Web" order="7" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.33777776" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.33777776" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.26555556" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Spring" order="7" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="8" visible="true" weight="0.32777777" />
+      <window_info anchor="bottom" id="Terminal" order="8" weight="0.32777777" />
       <window_info anchor="bottom" id="Docker" order="9" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Statistic" order="11" />
+      <window_info anchor="bottom" id="Statistic" order="11" weight="0.32963374" />
       <window_info anchor="bottom" id="Java Enterprise" order="12" />
       <window_info anchor="bottom" id="Database Changes" order="13" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="14" />
@@ -683,10 +731,10 @@
       <window_info anchor="right" id="Palette" order="3" />
       <window_info anchor="right" id="Capture Analysis" order="4" />
       <window_info anchor="right" id="Maven Projects" order="5" weight="0.32972628" />
-      <window_info anchor="right" id="Database" order="6" weight="0.32972628" />
-      <window_info anchor="right" id="Palette&#9;" order="7" />
-      <window_info anchor="right" id="Theme Preview" order="8" />
-      <window_info anchor="right" id="Bean Validation" order="9" />
+      <window_info anchor="right" id="Bean Validation" order="6" weight="0.32972628" />
+      <window_info anchor="right" id="Database" order="7" weight="0.32972628" />
+      <window_info anchor="right" id="Palette&#9;" order="8" />
+      <window_info anchor="right" id="Theme Preview" order="9" />
       <window_info anchor="right" id="SciView" order="10" />
     </layout>
     <layout-to-restore>
@@ -734,19 +782,48 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/iscas/strategy/Heuristic.java</url>
+          <line>205</line>
+          <properties />
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
+      </breakpoints>
       <breakpoints-defaults>
         <breakpoint suspend="THREAD" type="java-line" />
       </breakpoints-defaults>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="SpringBootApplicationConfigurationType">
-        <watch expression="root" language="JAVA" />
-        <watch expression="http" language="JAVA" />
+        <watch expression="this.executedIPS" language="JAVA" />
+        <watch expression="this.failedIPS" language="JAVA" />
+        <watch expression="this.IPS" language="JAVA" />
       </configuration>
     </watches-manager>
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="watch">
+      <expression>
+        <expression-string>this.IPS</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>this.IPS.remove(this.IPS.size()-1)</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>this.failedIPS</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>this.executedIPS</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>http</expression-string>
         <language-id>JAVA</language-id>
@@ -777,52 +854,9 @@
         <language-id>JAVA</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
-      <expression>
-        <expression-string>ResourceUtils.getFile(&quot;classpath:static/log/&quot;)</expression-string>
-        <language-id>JAVA</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>ResourceUtils.getURL(&quot;classpath:static/index.html&quot;)</expression-string>
-        <language-id>JAVA</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>ResourceUtils.getURL(&quot;classpath:static/log&quot;)</expression-string>
-        <language-id>JAVA</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>ResourceUtils.getFile(&quot;classpath:static/log&quot;)</expression-string>
-        <language-id>JAVA</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/main/resources/assertions/productpage.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="351">
-          <caret line="21" lean-forward="true" selection-start-line="21" selection-end-line="21" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/static/log/test1.log" />
-    <entry file="file://$PROJECT_DIR$/src/main/resources/static/tmp/empty.log" />
-    <entry file="file://$PROJECT_DIR$/src/main/resources/static/mylogs/test.log">
-      <provider selected="true" editor-type-id="LogFileEditorProvider">
-        <state>
-          <caret column="3" selection-start-column="3" selection-end-column="3" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/iscas/config/WebSocketConfig.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="23" lean-forward="true" selection-start-line="23" selection-end-line="23" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/pom.xml">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="442">
@@ -886,13 +920,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/iscas/service/Jaeger.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1462">
-          <caret line="100" column="56" lean-forward="true" selection-start-line="100" selection-start-column="56" selection-end-line="100" selection-end-column="56" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/iscas/dao/TimeoutResultDAO.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="272">
@@ -904,13 +931,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="238">
           <caret line="14" column="30" selection-start-line="14" selection-start-column="30" selection-end-line="14" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/iscas/strategy/Heuristic.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="325">
-          <caret line="925" column="38" lean-forward="true" selection-start-line="925" selection-start-column="38" selection-end-line="925" selection-end-column="38" />
         </state>
       </provider>
     </entry>
@@ -953,13 +973,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="342">
           <caret line="81" column="43" selection-start-line="81" selection-start-column="43" selection-end-line="81" selection-end-column="43" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/iscas/bean/Configuration.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2941">
-          <caret line="5" column="13" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="13" />
         </state>
       </provider>
     </entry>
@@ -1062,9 +1075,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2459">
           <caret line="212" lean-forward="true" selection-start-line="212" selection-end-line="212" />
-          <folding>
-            <element signature="method#queryGraph#0;class#Telemetry#0" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1072,12 +1082,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="170">
           <caret line="10" column="22" lean-forward="true" selection-start-line="3" selection-start-column="4" selection-end-line="10" selection-end-column="22" />
-          <folding>
-            <element signature="e#1258#1259#0" expanded="true" />
-            <element signature="e#1286#1287#0" expanded="true" />
-            <element signature="e#1325#1326#0" expanded="true" />
-            <element signature="e#1359#1360#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1095,27 +1099,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="153">
           <caret line="9" column="29" lean-forward="true" selection-start-line="9" selection-start-column="29" selection-end-line="9" selection-end-column="29" />
-          <folding>
-            <element signature="e#232#233#0" expanded="true" />
-            <element signature="e#272#273#0" expanded="true" />
-            <element signature="e#304#305#0" expanded="true" />
-            <element signature="e#334#335#0" expanded="true" />
-            <element signature="e#360#361#0" expanded="true" />
-            <element signature="e#398#399#0" expanded="true" />
-            <element signature="e#428#429#0" expanded="true" />
-            <element signature="e#465#466#0" expanded="true" />
-            <element signature="e#498#499#0" expanded="true" />
-            <element signature="e#550#551#0" expanded="true" />
-            <element signature="e#594#595#0" expanded="true" />
-            <element signature="e#625#626#0" expanded="true" />
-            <element signature="e#655#656#0" expanded="true" />
-            <element signature="e#698#699#0" expanded="true" />
-            <element signature="e#736#737#0" expanded="true" />
-            <element signature="e#765#766#0" expanded="true" />
-            <element signature="e#793#794#0" expanded="true" />
-            <element signature="e#832#833#0" expanded="true" />
-            <element signature="e#866#867#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1130,63 +1113,136 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1683">
           <caret line="321" column="1" lean-forward="true" selection-start-line="321" selection-start-column="1" selection-end-line="321" selection-end-column="1" />
-          <folding>
-            <element signature="method#inject#0;class#Injector#0" />
-            <element signature="method#injectAbort#0;class#Injector#0" />
-            <element signature="method#deleteFault#0;class#Injector#0" />
-            <element signature="method#queryAllFaults#0;class#Injector#0" />
-            <element signature="method#injectRoute#0;class#Injector#0" />
-            <element signature="method#queryAllRoutes#0;class#Injector#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/static/details.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="475">
-          <caret line="204" column="25" selection-start-line="204" selection-start-column="25" selection-end-line="204" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/static/experiment.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="186">
-          <caret line="144" column="25" selection-start-line="144" selection-start-column="25" selection-end-line="144" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/static/history.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="356">
-          <caret line="126" column="25" selection-start-line="126" selection-start-column="25" selection-end-line="126" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/static/fault.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="271">
-          <caret line="269" column="39" selection-start-line="269" selection-start-column="39" selection-end-line="269" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/static/graphs.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="203">
-          <caret line="234" column="37" selection-start-line="234" selection-start-column="37" selection-end-line="234" selection-end-column="37" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/static/route.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1886">
-          <caret line="195" column="39" selection-start-line="195" selection-start-column="39" selection-end-line="195" selection-end-column="39" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/resources/static/configuration.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="356">
-          <caret line="60" column="64" lean-forward="true" selection-start-line="60" selection-start-column="64" selection-end-line="60" selection-end-column="64" />
+        <state relative-caret-position="833">
+          <caret line="49" column="24" selection-start-line="32" selection-start-column="12" selection-end-line="49" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/static/details.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="850">
+          <caret line="50" column="24" selection-start-line="50" selection-start-column="24" selection-end-line="50" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/static/experiment.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1156">
+          <caret line="68" column="24" selection-start-line="68" selection-start-column="24" selection-end-line="68" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/static/fault.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="98">
+          <caret line="173" column="33" lean-forward="true" selection-start-line="173" selection-start-column="33" selection-end-line="173" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/static/graphs.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="438">
+          <caret line="152" column="24" selection-start-line="152" selection-start-column="24" selection-end-line="152" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/static/history.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="438">
+          <caret line="50" column="24" selection-start-line="50" selection-start-column="24" selection-end-line="50" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/static/route.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="302">
+          <caret line="123" column="22" lean-forward="true" selection-start-line="123" selection-start-column="22" selection-end-line="123" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/iscas/bean/Configuration.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="44" column="28" lean-forward="true" selection-start-line="44" selection-start-column="28" selection-end-line="44" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/assertions/productpage.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="340">
+          <caret line="22" column="29" lean-forward="true" selection-start-line="22" selection-start-column="29" selection-end-line="22" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/iscas/bean/Assertion.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6" lean-forward="true" selection-start-line="6" selection-end-line="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/iscas/service/TraceTracker.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="85">
+          <caret line="7" column="22" selection-start-line="7" selection-start-column="22" selection-end-line="7" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/iscas/service/Jaeger.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="329">
+          <caret line="45" column="9" lean-forward="true" selection-start-line="45" selection-start-column="9" selection-end-line="45" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/iscas/strategy/Heuristic.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="578">
+          <caret line="182" column="24" lean-forward="true" selection-start-line="182" selection-start-column="24" selection-end-line="182" selection-end-column="24" />
+          <folding>
+            <element signature="e#41646#41647#0" expanded="true" />
+            <element signature="e#41678#41679#0" expanded="true" />
+            <element signature="e#41722#41723#0" expanded="true" />
+            <element signature="e#41749#41750#0" expanded="true" />
+            <element signature="e#41798#41799#0" expanded="true" />
+            <element signature="e#41825#41826#0" expanded="true" />
+            <element signature="e#41866#41867#0" expanded="true" />
+            <element signature="e#41892#41893#0" expanded="true" />
+            <element signature="e#41937#41938#0" expanded="true" />
+            <element signature="e#41964#41965#0" expanded="true" />
+            <element signature="e#42005#42006#0" expanded="true" />
+            <element signature="e#42037#42038#0" expanded="true" />
+            <element signature="e#42085#42086#0" expanded="true" />
+            <element signature="e#42124#42125#0" expanded="true" />
+            <element signature="e#42167#42168#0" expanded="true" />
+            <element signature="e#42201#42202#0" expanded="true" />
+            <element signature="e#42239#42240#0" expanded="true" />
+            <element signature="e#42265#42266#0" expanded="true" />
+            <element signature="e#42294#42295#0" expanded="true" />
+            <element signature="e#42319#42320#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/test/java/TestRandom.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="291">
+          <caret line="93" column="31" lean-forward="true" selection-start-line="93" selection-start-column="31" selection-end-line="93" selection-end-column="31" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/test/java/TestRandom2.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="189">
+          <caret line="89" column="24" lean-forward="true" selection-start-line="89" selection-start-column="24" selection-end-line="89" selection-end-column="24" />
         </state>
       </provider>
     </entry>

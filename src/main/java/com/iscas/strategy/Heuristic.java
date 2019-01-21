@@ -160,13 +160,12 @@ public class Heuristic {
         this.cbrs = new ArrayList<>();
         this.bhrs = new ArrayList<>();
         this.rs = new ArrayList<>();
+        this.executedIPS = new HashSet<>();
+        this.failedIPS = new HashSet<>();
         this.stop = false;
     }
 
     private void detect() throws InterruptedException {
-        this.executedIPS = new HashSet<>();
-        this.failedIPS = new HashSet<>();
-
         while (true) {
             if (stop)
                 return;
@@ -252,7 +251,7 @@ public class Heuristic {
                     this.log("删除故障");
                     deleteFaults();
                     this.log("开始模式分析");
-                    analysis();
+//                    analysis();
                     this.log("模式分析结束");
                 }
             }
@@ -277,9 +276,9 @@ public class Heuristic {
             if (this.stop)
                 break;
 
-            this.log("等待" + interval + "秒,zipkin抓取中");
+            this.log("等待" + interval + "+5秒,zipkin抓取中");
             if (!debug)
-                Thread.sleep(interval * 1000);
+                Thread.sleep((interval + 5) * 1000);
 
             this.log("查询中");
             List<Span> spanTrees = tracker.sample(sampleBatch, interval);
@@ -325,7 +324,7 @@ public class Heuristic {
         for (long curTime = Time.getCurTimeStampMs(); curTime < endTime; curTime = Time.getCurTimeStampMs()) {
             if (!debug) {
                 this.log("等待" + interval + "秒");
-                Thread.sleep(interval * 1000);
+                Thread.sleep((interval) * 1000);
             }
 
             // sample
@@ -405,7 +404,7 @@ public class Heuristic {
             // 暂停一段时间
             if (!debug) {
                 this.log("等待" + interval + "秒");
-                Thread.sleep(interval * 1000);
+                Thread.sleep((interval) * 1000);
 
             }
             this.log("抽样");
@@ -544,7 +543,7 @@ public class Heuristic {
             //暂停一段时间
             if (!debug) {
                 this.log("等待" + interval + "秒");
-                Thread.sleep(interval * 1000);
+                Thread.sleep((interval) * 1000);
             }
 
             this.log("分析熔断位置");
@@ -608,7 +607,7 @@ public class Heuristic {
                 // 暂停一段时间
                 if (!debug) {
                     System.out.println("等待" + interval2 + "秒");
-                    Thread.sleep(interval2 * 100);
+                    Thread.sleep((interval) * 100);
                 }
 
                 this.log("查询吞吐量数据");
@@ -664,7 +663,7 @@ public class Heuristic {
         // 暂停一段时间
         if (!debug) {
             this.log("等待" + interval + "秒");
-            Thread.sleep(interval * 1000);
+            Thread.sleep((interval) * 1000);
         }
 
         this.log("抽样中");
@@ -704,7 +703,7 @@ public class Heuristic {
             // 暂停一段时间
             if (!debug) {
                 this.log("等待" + interval + "秒");
-                Thread.sleep(interval * 1000);
+                Thread.sleep((interval) * 1000);
             }
 
             this.log("抽样故障调用链中");
@@ -1018,8 +1017,10 @@ public class Heuristic {
 
     private Assertion test() throws InterruptedException {
         int sampleBatch = 10;
-        long duration = 30;
+        long duration = 10;
         int interval = 10;
+
+        Assertion failed = null;
 
         long startTime = Time.getCurTimeStampMs();
         long endTime = startTime + duration * 1000;
@@ -1028,11 +1029,13 @@ public class Heuristic {
 
         // 根据内置条件验证结果
         this.log("验证返回结果和响应时间");
+        int total = 0;
+        int err = 0;
         for (long curTime = Time.getCurTimeStampMs(); curTime < endTime; curTime = Time.getCurTimeStampMs()) {
 
             if (!debug) {
                 this.log("等待" + interval + "秒");
-                Thread.sleep(interval * 1000);
+                Thread.sleep((interval) * 1000);
             }
 
             this.log("采样调用链");
@@ -1043,52 +1046,74 @@ public class Heuristic {
                 // 过滤无关trace
                 if (!this.currentUrls.contains(root.getUrl()))
                     continue;
+                total += 1;
 
                 // 验证httpcode
-                if (root.isErr() || Integer.valueOf(root.getCode()) >= 300)
-                    return new Assertion("httpcode", root.getUrl(), "返回码为" + root.getCode());
+                if (root.isErr() || Integer.valueOf(root.getCode()) >= 300) {
+                    err += 1;
+                    failed = new Assertion("httpcode", root.getUrl(), "返回码为" + root.getCode());
+                }
 
 
                 // 验证响应时间
-                if (root.getDuration() / 1000 >= 10)
-                    return new Assertion("responseTime", root.getUrl(), "响应时间为" + root.getDuration() / 1000);
+                if (root.getDuration() / 1000 >= 10) {
+                    err += 1;
+                    failed = new Assertion("responseTime", root.getUrl(), "响应时间为" + root.getDuration() / 1000);
+                }
             }
 
             if (debug)
                 break;
         }
-        this.log("返回结果和响应时间正常");
+
+        if (err > total / 2) {
+            this.pushLog(failed.toString());
+            return failed;
+        } else {
+            total = 0;
+            err = 0;
+            this.pushLog("返回结果和响应时间正常");
+        }
 
         // 根据用户定义的验证脚本验证
         this.log("验证用户自定义脚本");
         String params = StringUtils.join(this.currentUrls.iterator(), ' ');
-        for (String assertionFile : this.configuration.getAssertionsUserDef()) {
-            if (FileUtil.existFile(assertionFile)) {
-                this.log("开始验证" + assertionFile);
-                try {
-                    //执行用户脚本
-                    String str = Cmd.execForStd("python " + assertionFile + " " + params);
-                    if (str.isEmpty())
-                        continue;
+        for (total = 0; total <= 10; total++) {
+            for (String assertionFile : this.configuration.getAssertionsUserDef()) {
+                if (FileUtil.existFile(assertionFile)) {
+                    this.pushLog("开始验证" + assertionFile);
+                    try {
+                        //执行用户脚本
+                        String str = Cmd.execForStd("python " + assertionFile + " " + params);
+                        if (str.isEmpty())
+                            continue;
 
-                    //验证结果
-                    JsonArray results = new JsonParser().parse(str).getAsJsonArray();
-                    if (results.size() == 0)
-                        continue;
-                    // [{"name":"...", "url":"...", "message": "..."}]
-                    for (int i = 0; i < results.size(); ++i) {
-                        JsonObject r = results.get(i).getAsJsonObject();
-                        String url = r.get("url").getAsString();
-                        if (this.currentUrls.contains(url))
-                            return new Assertion(r.get("name").getAsString(),
-                                    url, r.get("message").getAsString());
+                        //验证结果
+                        JsonArray results = new JsonParser().parse(str).getAsJsonArray();
+                        if (results.size() == 0)
+                            continue;
+                        // [{"name":"...", "url":"...", "message": "..."}]
+                        for (int i = 0; i < results.size(); ++i) {
+                            JsonObject r = results.get(i).getAsJsonObject();
+                            String url = r.get("url").getAsString();
+                            if (this.currentUrls.contains(url)) {
+                                err += 1;
+                                failed = new Assertion(r.get("name").getAsString(),
+                                        url, r.get("message").getAsString());
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        this.pushLog(assertionFile + "有问题");
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    this.log(assertionFile + "有问题");
                 }
             }
         }
+        if (err > total / 2) {
+            this.pushLog(failed.toString());
+            return failed;
+        }
+        this.pushLog("返回结果和响应时间正常");
         return null;
     }
 

@@ -44,7 +44,7 @@ public class Configuration {
 
     public Configuration() {
         // 设置trace探测阶段
-        this.traceDetectDuration = 2 * 30;
+        this.traceDetectDuration = 1 * 30;
         this.traceDetectSampleBatch = 20;
         this.traceDetectSampleInterval = 30;
 
