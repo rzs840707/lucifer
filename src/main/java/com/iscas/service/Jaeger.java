@@ -55,7 +55,7 @@ public class Jaeger implements TraceTracker {
         params.put("limit", String.valueOf(num));
 //        params.put("lookback",lookback);
         long curTS = Time.getCurTimeStampMs() * 1000;
-        params.put("end", String.valueOf(curTS));
+        params.put("end", String.valueOf(curTS - 5 * 1000 * 1000));
         params.put("start", String.valueOf(curTS - lookback * 1000 * 1000));
         params.put("tags", "{\"error\":\"true\"}");
 
@@ -141,6 +141,7 @@ public class Jaeger implements TraceTracker {
                 }
                 Span tmp = new Span(serviceName, url, method, code, duration, timestamp, error, kind);
                 spanMap.put(spanId, tmp);
+//                System.out.println(spanId + " " + tmp);
 
                 // 构建边
                 JsonArray father = spanInJson.getAsJsonArray("references");
@@ -149,6 +150,7 @@ public class Jaeger implements TraceTracker {
                     if (!edges.containsKey(fspanId))
                         edges.put(fspanId, new ArrayList<>());
                     edges.get(fspanId).add(spanId);
+//                    System.out.println(tmp + " -> " + fspanId);
                 } else {
                     root = tmp;
                 }

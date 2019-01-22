@@ -9,7 +9,7 @@ import javax.persistence.*;
 @Table(name = "CircuitBreakResult")
 public class CircuitBreakResult {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int gid;
     private String id;
     private int injectTime;

@@ -6,7 +6,7 @@ import javax.persistence.*;
 @Table(name = "TimeoutResult")
 public class TimeoutResult {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int gid;
     private String id;
     private int injectTime;

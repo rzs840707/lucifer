@@ -6,7 +6,7 @@ import javax.persistence.*;
 @Table(name = "RetryResult")
 public class RetryResult {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int gid;
     private String id;
     private int injectTime;

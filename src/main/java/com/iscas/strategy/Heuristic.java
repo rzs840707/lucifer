@@ -129,7 +129,7 @@ public class Heuristic {
     }
 
     private void init() {
-        this.id = "detect_" + (++Heuristic.times);
+        this.id = "detect_" + (++Heuristic.times) + "_" + Time.getCurTimeStr();
 
         // create logger
         LoggerContext loggerContext = (ch.qos.logback.classic.LoggerContext) LoggerFactory.getILoggerFactory();
@@ -251,7 +251,7 @@ public class Heuristic {
                     this.log("删除故障");
                     deleteFaults();
                     this.log("开始模式分析");
-//                    analysis();
+                    analysis();
                     this.log("模式分析结束");
                 }
             }
@@ -538,7 +538,7 @@ public class Heuristic {
         Set<Pair<String, String>> locations = new HashSet<>();
         for (long currentTime = Time.getCurTimeStampMs(); currentTime < endTime; currentTime = Time.getCurTimeStampMs()) {
 
-            List<Span> roots = tracker.sampleErr(sampleBatch, interval);
+            List<Span> roots = tracker.sample(sampleBatch, interval);
 
             //暂停一段时间
             if (!debug) {
@@ -576,8 +576,14 @@ public class Heuristic {
                     // 求差得到熔断位置
                     Set<String> tmp = new HashSet<>(childrenNormal);
                     tmp.removeAll(childrenNow);
-                    for (String childService : tmp)
-                        locations.add(new Pair<>(span.getService(), childService));
+                    for (String childService : tmp) {
+                        String name1 = span.getService().substring(0, span.getService().indexOf('.'));
+                        String name2 = childService.substring(0, childService.indexOf('.'));
+                        int oriSize = locations.size();
+                        locations.add(new Pair<>(name1, name2));
+                        if (locations.size() > oriSize)
+                            this.log("探测到熔断位置：" + name1 + " -> " + name2);
+                    }
                 }
             }
 
@@ -607,7 +613,7 @@ public class Heuristic {
                 // 暂停一段时间
                 if (!debug) {
                     System.out.println("等待" + interval2 + "秒");
-                    Thread.sleep((interval) * 100);
+                    Thread.sleep((interval) * 1000);
                 }
 
                 this.log("查询吞吐量数据");

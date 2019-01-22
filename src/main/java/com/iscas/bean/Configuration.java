@@ -44,39 +44,39 @@ public class Configuration {
 
     public Configuration() {
         // 设置trace探测阶段
-        this.traceDetectDuration = 1 * 30;
+        this.traceDetectDuration = 30;
         this.traceDetectSampleBatch = 20;
-        this.traceDetectSampleInterval = 30;
+        this.traceDetectSampleInterval = 10;
 
         // 设置断言验证
         this.assertionsUserDef = new ArrayList<>();
         this.assertionsUserDef.add("/home/ccx/dev/projects/java/lucifer/src/main/resources/assertions/productpage.py");
 
         // 设置超时
-        this.timeoutDetectionDuration = 2 * 30;
-        this.timeoutSampleBatch = 20;
-        this.timeoutSampleInterval = 30;
+        this.timeoutDetectionDuration = 4 * 10;
+        this.timeoutSampleBatch = 40;
+        this.timeoutSampleInterval = 20;
 
         // 设置重试
-        this.retryDetectionDuration = 2 * 30;
+        this.retryDetectionDuration = 2 * 10;
         this.retrySampleBatch = 20;
-        this.retrySampleInterval = 30;
+        this.retrySampleInterval = 10;
 
         //设置熔断
-        this.circuitbreakerLocateDuration = 2 * 30;
+        this.circuitbreakerLocateDuration = 30;
         this.circuitbreakerLocateSampleBatch = 20;
-        this.circuitbreakerLocateInterval = 30;
-        this.circuitbreakerHalfStateDuration = 2 * 30;
+        this.circuitbreakerLocateInterval = 10;
+        this.circuitbreakerHalfStateDuration = 4 * 10;
         this.circuitbreakerQPSWindowSize = 10;
-        this.circuitbreakerInterval = 10;
+        this.circuitbreakerInterval = 20;
 
         //设置船舱
-        this.bulkheadDuration1 = 2 * 30;
+        this.bulkheadDuration1 = 4 * 10;
         this.bulkheadWindowSize1 = 10;
-        this.bulkheadInterval1 = 10;
-        this.bulkheadDuration2 = 2 * 30;
+        this.bulkheadInterval1 = 20;
+        this.bulkheadDuration2 = 4 * 10;
         this.bulkheadWindowSize2 = 10;
-        this.bulkheadInterval2 = 10;
+        this.bulkheadInterval2 = 20;
         this.bulkheadThreshold = 0.4;
     }
 
