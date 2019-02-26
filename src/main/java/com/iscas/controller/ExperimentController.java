@@ -1,22 +1,22 @@
 package com.iscas.controller;
 
+import com.iscas.bean.Span;
 import com.iscas.bean.Trace;
 import com.iscas.bean.result.BulkHeadResult;
 import com.iscas.bean.result.CircuitBreakResult;
 import com.iscas.bean.result.RetryResult;
 import com.iscas.bean.result.TimeoutResult;
+import com.iscas.entity.Edge;
 import com.iscas.entity.Graph;
 import com.iscas.entity.Result;
 import com.iscas.service.Telemetry;
 import com.iscas.strategy.Heuristic;
+import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @RestController
 @RequestMapping("/exp")
@@ -146,5 +146,42 @@ public class ExperimentController {
         List<Object> r = new ArrayList<>();
         r.add(log);
         return new Result(true, r, "");
+    }
+
+    @RequestMapping("/currentTraceGraph")
+    public Result getCurrentTraceGraph() {
+        List<Trace> traces = this.heuristic.getCurrentTracePool();
+        Set<Edge> edges = new HashSet<>();
+        Set<String> nodes = new HashSet<>();
+        if (traces != null)
+            // 构建图
+            for (Trace t : traces) {
+                LinkedList<Span> stack = new LinkedList<>();
+                stack.push(t.getSpan());
+                while (!stack.isEmpty()) {
+                    Span fspan = stack.pop();
+                    String tmp = fspan.getService();
+                    tmp = tmp.substring(0, tmp.indexOf('.'));
+                    nodes.add(tmp);
+                    for (Span cspan : fspan.getChildren()) {
+                        String tmp1 = cspan.getService();
+                        edges.add(new Edge(tmp, tmp1.substring(0, tmp1.indexOf('.')), ""));
+                        stack.push(cspan);
+                    }
+                }
+            }
+        Graph g = new Graph(nodes, new ArrayList<>(edges));
+        List<Object> data = new ArrayList<>();
+        data.add(g);
+
+        // 添加当前注入点
+        String[] currentIP = this.heuristic.getCurrentIP();
+        if (currentIP != null) {
+            data.add(currentIP);
+        } else {
+            List<String[]> empty = new ArrayList<>();
+            data.add(empty);
+        }
+        return new Result(true, data, "");
     }
 }

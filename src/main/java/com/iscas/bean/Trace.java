@@ -8,12 +8,14 @@ public class Trace {
     private int count;
     private String[] urls;
     private String[] services;
+    private Span span;
 
-    public Trace(String[] urls, String[] services) {
+    public Trace(String[] urls, String[] services, Span span) {
         this.urls = urls;
         Arrays.sort(services);
         this.services = services;
         this.count = 1;
+        this.span = span;
     }
 
     @Override
@@ -52,5 +54,9 @@ public class Trace {
 
     public int getCount() {
         return count;
+    }
+
+    public Span getSpan() {
+        return span;
     }
 }

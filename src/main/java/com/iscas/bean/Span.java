@@ -1,6 +1,7 @@
 package com.iscas.bean;
 
 public class Span {
+    private String traceId;
     private String service;
     private String url;
     private String method;
@@ -11,7 +12,9 @@ public class Span {
     private Span[] children;
     private String kind;
 
-    public Span(String service, String url, String method, String code, long duration, String timestamp, boolean err, String kind) {
+    public Span(String traceId, String service, String url, String method,
+                String code, long duration, String timestamp, boolean err, String kind) {
+        this.traceId = traceId;
         this.service = service;
         this.url = url;
         this.method = method;
@@ -40,7 +43,6 @@ public class Span {
     }
 
     /**
-     *
      * @return 毫秒级别
      */
     public long getDuration() {
@@ -78,5 +80,9 @@ public class Span {
     @Override
     public String toString() {
         return this.getService();
+    }
+
+    public String getTraceId() {
+        return traceId;
     }
 }

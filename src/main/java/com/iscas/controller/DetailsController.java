@@ -42,6 +42,12 @@ public class DetailsController {
         return new Result(true, new ArrayList<>(r), "");
     }
 
+    @RequestMapping("/injectResults")
+    public Result getInjectResults(@PathVariable("id") String historyid) {
+        List<InjectResult> r = history.queryInjectResults(historyid);
+        return new Result(true, new ArrayList<>(r), "");
+    }
+
     @RequestMapping("/timeoutResults")
     public Result getTimeoutResults(@PathVariable("id") String historyid) {
         List<TimeoutResult> r = history.queryTimeoutResults(historyid);

@@ -22,6 +22,11 @@
             fill: #fff;
         }
 
+        .node-warning {
+            stroke: #333;
+            fill: red;
+        }
+
         .edge-normal {
             stroke: #333;
             fill: #333;
@@ -53,7 +58,7 @@
                 <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="http://localhost:8089"  target="_blank">Loader</a>
+                <a class="nav-link" href="http://localhost:8089" target="_blank">Loader</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="http://localhost:31576">Statistic</a>
@@ -216,25 +221,28 @@
                 <!-- 本轮测试操作 -->
                 <h3 class="pt-5">本轮计算</h3>
                 <div class="row">
-                    <div class="col-4 text-center">
-                        <h5>使用的调用链</h5>
-                        <ul class="list-group" id="currentTraceList">
-                            <!--<li class="list-group-item d-flex justify-content-between align-items-center">-->
-                            <!--A,B,C-->
-                            <!--<span class="badge badge-primary badge-pill">2</span>-->
-                            <!--</li>-->
-                            <!--<li class="list-group-item d-flex justify-content-between align-items-center">-->
-                            <!--A,D-->
-                            <!--<span class="badge badge-primary badge-pill">2</span>-->
-                            <!--</li>-->
-                            <!--<li class="list-group-item d-flex justify-content-between align-items-center">-->
-                            <!--B,D-->
-                            <!--<span class="badge badge-primary badge-pill">1</span>-->
-                            <!--</li>-->
-                        </ul>
+                    <div class="col-4 text-center" style="height: 300px">
+                        <h5>注入情况</h5>
+                        <!--<ul class="list-group" id="currentTraceList">-->
+                        <!--&lt;!&ndash;<li class="list-group-item d-flex justify-content-between align-items-center">&ndash;&gt;-->
+                        <!--&lt;!&ndash;A,B,C&ndash;&gt;-->
+                        <!--&lt;!&ndash;<span class="badge badge-primary badge-pill">2</span>&ndash;&gt;-->
+                        <!--&lt;!&ndash;</li>&ndash;&gt;-->
+                        <!--&lt;!&ndash;<li class="list-group-item d-flex justify-content-between align-items-center">&ndash;&gt;-->
+                        <!--&lt;!&ndash;A,D&ndash;&gt;-->
+                        <!--&lt;!&ndash;<span class="badge badge-primary badge-pill">2</span>&ndash;&gt;-->
+                        <!--&lt;!&ndash;</li>&ndash;&gt;-->
+                        <!--&lt;!&ndash;<li class="list-group-item d-flex justify-content-between align-items-center">&ndash;&gt;-->
+                        <!--&lt;!&ndash;B,D&ndash;&gt;-->
+                        <!--&lt;!&ndash;<span class="badge badge-primary badge-pill">1</span>&ndash;&gt;-->
+                        <!--&lt;!&ndash;</li>&ndash;&gt;-->
+                        <!--</ul>-->
+                        <svg id="currentTraceGraph" style="height: 100%;width: 100%">
+                            <g></g>
+                        </svg>
                     </div>
-                    <div class="col-4 text-center">
-                        <h5>故障注入点集合</h5>
+                    <div class="col-2 text-center">
+                        <h5>故障位置集合</h5>
                         <ul class="list-group" id="currentIPS">
                             <!--<li class="list-group-item d-flex  align-items-center">-->
                             <!--生成故障注入点-->
@@ -247,8 +255,22 @@
                             <!--</li>-->
                         </ul>
                     </div>
+                    <div class="col-2 text-center">
+                        <h5>故障注入类型集合</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex  align-items-center">
+                                Abort(500):Delay(20s) = 1:1
+                            </li>
+                            <!--<li class="list-group-item d-flex  align-items-center ">-->
+                            <!--删除故障-->
+                            <!--</li>-->
+                            <!--<li class="list-group-item d-flex  align-items-center">-->
+                            <!--注入故障-->
+                            <!--</li>-->
+                        </ul>
+                    </div>
                     <div class="col-4 text-center">
-                        <h5>接口集合</h5>
+                        <h5>当前测试接口集合</h5>
                         <ul class="list-group" id="currentUrls">
                             <!--<li class="list-group-item d-flex justify-content-between align-items-center">-->
                             <!--名称-->
@@ -276,6 +298,7 @@
                         <th scope="col">阈值</th>
                         <th scope="col">时间</th>
                         <th scope="col">消息</th>
+                        <th scope="col">故障</th>
                     </tr>
                     </thead>
                     <tbody id="timeoutList">
@@ -295,6 +318,7 @@
                         <th scope="col">半开状态</th>
                         <th scope="col">时间</th>
                         <th scope="col">消息</th>
+                        <th scope="col">故障</th>
                     </tr>
                     </thead>
                     <tbody id="circuitBreakerList">
@@ -314,6 +338,7 @@
                         <th scope="col">最低吞吐梁</th>
                         <th scope="col">时间</th>
                         <th scope="col">消息</th>
+                        <th scope="col">故障</th>
                     </tr>
                     </thead>
                     <tbody id="bulkheadList">
@@ -333,6 +358,7 @@
                         <th scope="col">阈值</th>
                         <th scope="col">时间</th>
                         <th scope="col">消息</th>
+                        <th scope="col">故障</th>
                     </tr>
                     </thead>
                     <tbody id="retryList">
@@ -400,6 +426,32 @@
         };
     }
 
+    function deserializeTraceGraph(data) {
+        //收集节点
+        var graph = data[0];
+        var ips = data[1];
+
+        var nodes = [];
+        graph.nodes.forEach(function (val) {
+            nodes.push({
+                "name": val,
+                "inject": ips.indexOf(val) > -1
+            });
+        });
+        var links = [];
+        graph.edges.forEach(function (value) {
+            links.push({
+                src: value.srcName,
+                tar: value.tarName
+            })
+        });
+
+        return {
+            "nodes": nodes,
+            "links": links
+        };
+    }
+
     function paintResponseGraph(elementId, graph) {
         var nodes = graph.nodes;
         var links = graph.links;
@@ -444,6 +496,57 @@
         svg.attr('height', g.graph().height * initialScale + y_offset * 2);
     }
 
+    function paintCurrentTraceGraph(elementId, graph) {
+        var nodes = graph.nodes;
+        var links = graph.links;
+        // create a graph
+        var g = new dagreD3.graphlib.Graph().setGraph({}).setDefaultEdgeLabel();
+
+        // add nodes and edges
+        nodes.forEach(function (node) {
+            var tmp = {label: node.name};
+            if (node.inject)
+                tmp.class = 'node-warning';
+            else
+                tmp.class = 'node';
+            g.setNode(node.name, tmp);
+        });
+
+        // 空图
+        if (nodes.length == 0)
+            g.setNode("empty_node", {label: "空节点", class: 'node'});
+
+        links.forEach(function (link) {
+            var e = {label: "call", curve: d3.curveBasis, class: 'edge-normal'};
+            g.setEdge(link.src, link.tar, e);
+        });
+
+        // remove old graph and add new graph
+        var svg = d3.select(elementId);
+        var old_g = svg.select("g");
+        old_g.remove();
+        svg.append("g");
+        var new_g = svg.select('g');
+
+        // Set up zoom support
+        var zoom = d3.zoom().on("zoom", function () {
+            new_g.attr("transform", d3.event.transform);
+        });
+        svg.call(zoom);
+
+        // paint
+        var render = new dagreD3.render();
+        render(new_g, g);
+
+        // 居中
+        var initialScale = 0.75;
+        var x_offset = $('#sidebar').width() * 2 / 3;
+        // var x_offset = 0;
+        var y_offset = 10;
+        svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2 + x_offset, y_offset).scale(initialScale));
+        svg.attr('height', g.graph().height * initialScale + y_offset * 2);
+    }
+
     function draw_response_time_graph() {
         $.ajax({
             url: '/exp/responseTimeGraph',
@@ -452,54 +555,6 @@
                 paintResponseGraph("#response_chart", graph);
             }
         });
-
-        // // query data
-        // var nodes = ['A', 'B', 'C', 'E', 'D', 'F'];
-        // var links = [{src: 'A', tar: 'B', label: '0.0'},
-        //     {src: 'A', tar: 'C', label: '1.5'},
-        //     {src: 'A', tar: 'D', label: '2.5'},
-        //     {src: 'A', tar: 'E', label: '3.5'},
-        //     {src: 'D', tar: 'F', label: '4.5'},
-        //     {src: 'E', tar: 'F', label: '5.5'}];
-
-        // // create a graph
-        // var g = new dagreD3.graphlib.Graph().setGraph({}).setDefaultEdgeLabel();
-        //
-        // // add nodes and edges
-        // nodes.forEach(function (node) {
-        //     g.setNode(node, {label: node, class: "node"});
-        // });
-        // links.forEach(function (link) {
-        //     e = {label: link.label, curve: d3.curveBasis};
-        //     if (link.label > 5)
-        //         e.class = 'edge-warning';
-        //     else
-        //         e.class = 'edge-normal';
-        //     g.setEdge(link.src, link.tar, e);
-        // });
-
-        // // remove old graph and add new graph
-        // var svg = d3.select("#response_chart");
-        // var old_g = svg.select("g");
-        // old_g.remove();
-        // svg.append("g");
-        // var new_g = svg.select('g');
-        //
-        // // Set up zoom support
-        // var zoom = d3.zoom().on("zoom", function () {
-        //     new_g.attr("transform", d3.event.transform);
-        // });
-        // svg.call(zoom);
-        //
-        // // paint
-        // var render = new dagreD3.render();
-        // render(new_g, g);
-
-        // var initialScale = 0.75;
-        // var x_offset = $('#sidebar').width();
-        // var y_offset = 40;
-        // svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2 + x_offset, y_offset).scale(initialScale));
-        // svg.attr('height', g.graph().height * initialScale + y_offset * 2);
     }
 
     function paintThroughputGraph(elementId, graph) {
@@ -556,6 +611,16 @@
         });
     }
 
+    function draw_currentTrace_graph() {
+        $.ajax({
+            url: '/exp/currentTraceGraph',
+            success: function (data) {
+                var graph = deserializeTraceGraph(data.data);
+                paintCurrentTraceGraph("#currentTraceGraph", graph);
+            }
+        });
+    }
+
     function refreshTimeoutList() {
         $.ajax({
             url: '/exp/timeoutResult',
@@ -572,6 +637,7 @@
                     line.append($("<td>" + value.threshold + "</td>"));
                     line.append($("<td>" + value.timestamp + "</td>"));
                     line.append($("<td>" + value.message + "</td>"));
+                    line.append($("<td>Delay(20s)</td>"));
 
                     list.append(line);
                 })
@@ -596,6 +662,7 @@
                     line.append($("<td>" + value.halfthroughout + "</td>"));
                     line.append($("<td>" + value.timestamp + "</td>"));
                     line.append($("<td>" + value.message + "</td>"));
+                    line.append($("<td>Abort(500)</td>"));
 
                     list.append(line);
                 })
@@ -620,6 +687,7 @@
                     line.append($("<td>" + value.threshold + "</td>"));
                     line.append($("<td>" + value.timestamp + "</td>"));
                     line.append($("<td>" + value.message + "</td>"));
+                    line.append($("<td>Abort(500)</td>"));
 
                     list.append(line);
                 })
@@ -644,6 +712,7 @@
                     line.append($("<td>" + value.worstThroughout + "</td>"));
                     line.append($("<td>" + value.timestamp + "</td>"));
                     line.append($("<td>" + value.message + "</td>"));
+                    line.append($("<td>Delay(20s)</td>"));
 
                     list.append(line);
                 })
@@ -795,6 +864,7 @@
         // 刷新两张图
         setInterval(draw_response_time_graph, 2 * 1000);
         setInterval(draw_throughput_graph, 2 * 1000);
+        setInterval(draw_currentTrace_graph, 2 * 1000);
     })
 
 </script>

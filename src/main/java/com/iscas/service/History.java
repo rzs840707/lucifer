@@ -12,6 +12,7 @@ import java.util.List;
 public class History {
 
     private DetectResultDAO detectResultDAO;
+    private InjectResultDAO injectResultDAO;
     private TimeoutResultDAO timeoutResultDAO;
     private RetryResultDAO retryResultDAO;
     private CircuitBreakerResultDAO circuitBreakerResultDAO;
@@ -21,12 +22,14 @@ public class History {
 
     @Autowired
     public History(DetectResultDAO detectResultDAO,
+                   InjectResultDAO injectResultDAO,
                    TimeoutResultDAO timeoutResultDAO,
                    RetryResultDAO retryResultDAO,
                    CircuitBreakerResultDAO circuitBreakerResultDAO,
                    BulkHeadResultDAO bulkHeadResultDAO,
                    SummaryDAO summaryDAO) {
         this.detectResultDAO = detectResultDAO;
+        this.injectResultDAO = injectResultDAO;
         this.timeoutResultDAO = timeoutResultDAO;
         this.retryResultDAO = retryResultDAO;
         this.circuitBreakerResultDAO = circuitBreakerResultDAO;
@@ -36,6 +39,10 @@ public class History {
 
     public List<DetectResult> queryDetectResults(String id) {
         return this.detectResultDAO.findAllById(id);
+    }
+
+    public List<InjectResult> queryInjectResults(String id) {
+        return this.injectResultDAO.findAllById(id);
     }
 
     public List<TimeoutResult> queryTimeoutResults(String id) {

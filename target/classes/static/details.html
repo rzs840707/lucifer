@@ -35,7 +35,7 @@
                 <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="http://localhost:8089"  target="_blank">Loader</a>
+                <a class="nav-link" href="http://localhost:8089" target="_blank">Loader</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="http://localhost:31576">Statistic</a>
@@ -222,11 +222,26 @@
 
                 <!-- 结果图表 -->
                 <div class="row">
-                    <div id="pattern_sunburst" class="col-6" style="height: 400px">
-                    </div>
-                    <div id="pattern_time_chart" class="col-6" style="height: 400px">
+                    <div id="pattern_sunburst" class="col-12" style="height: 400px">
                     </div>
                 </div>
+
+                <h3 class="pt-5">注入记录</h3>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">探测ID</th>
+                        <th scope="col">注入ID</th>
+                        <th scope="col">注入位置</th>
+                        <th scope="col">时间</th>
+                        <th scope="col">是否正常</th>
+                        <th scope="col">调用链ID</th>
+                        <th scope="col">故障</th>
+                    </tr>
+                    </thead>
+                    <tbody id="injectList">
+                    </tbody>
+                </table>
 
                 <h3 class="pt-5">测试结果-超时模式</h3>
                 <table class="table">
@@ -239,6 +254,7 @@
                         <th scope="col">阈值</th>
                         <th scope="col">时间</th>
                         <th scope="col">消息</th>
+                        <th scope="col">故障</th>
                     </tr>
                     </thead>
                     <tbody id="timeoutList">
@@ -258,6 +274,7 @@
                         <th scope="col">半开状态</th>
                         <th scope="col">时间</th>
                         <th scope="col">消息</th>
+                        <th scope="col">故障</th>
                     </tr>
                     </thead>
                     <tbody id="circuitBreakerList">
@@ -277,6 +294,7 @@
                         <th scope="col">最低吞吐梁</th>
                         <th scope="col">时间</th>
                         <th scope="col">消息</th>
+                        <th scope="col">故障</th>
                     </tr>
                     </thead>
                     <tbody id="bulkheadList">
@@ -296,6 +314,7 @@
                         <th scope="col">阈值</th>
                         <th scope="col">时间</th>
                         <th scope="col">消息</th>
+                        <th scope="col">故障</th>
                     </tr>
                     </thead>
                     <tbody id="retryList">
@@ -329,6 +348,7 @@
     draw_sunburst();
     draw_timechart();
     refreshSummary();
+    refreshInjectList();
     refreshTimeoutList();
     refreshBulkhead();
     refreshRetry();
@@ -508,6 +528,29 @@
         });
     }
 
+    function refreshInjectList() {
+        $.ajax({
+            url: '/details/' + getUrlParam("historyId") + '/injectResults',
+            success: function (data) {
+                data = data.data;
+                var list = $("#injectList").empty();
+                data.forEach(function (value) {
+                    // 创建列表行
+                    var line = $("<tr></tr>");
+                    line.append($("<td>" + value.id + "</td>"));
+                    line.append($("<td>" + value.injectId + "</td>"));
+                    line.append($("<td>" + value.ip + "</td>"));
+                    line.append($("<td>" + value.timestamp + "</td>"));
+                    line.append($("<td>" + value.normal + "</td>"));
+                    line.append($("<td>" + value.traceID + "</td>"));
+                    line.append($("<td>Abort(500):Delay(20)=1:1</td>"));
+
+                    list.append(line);
+                })
+            }
+        });
+    }
+
     function refreshTimeoutList() {
         $.ajax({
             url: '/details/' + getUrlParam("historyId") + '/timeoutResults',
@@ -524,6 +567,7 @@
                     line.append($("<td>" + value.threshold + "</td>"));
                     line.append($("<td>" + value.timestamp + "</td>"));
                     line.append($("<td>" + value.message + "</td>"));
+                    line.append($("<td>Delay(20s)</td>"));
 
                     list.append(line);
                 })
@@ -548,6 +592,7 @@
                     line.append($("<td>" + value.halfthroughout + "</td>"));
                     line.append($("<td>" + value.timestamp + "</td>"));
                     line.append($("<td>" + value.message + "</td>"));
+                    line.append($("<td>Abort(500)</td>"));
 
                     list.append(line);
                 })
@@ -572,6 +617,7 @@
                     line.append($("<td>" + value.threshold + "</td>"));
                     line.append($("<td>" + value.timestamp + "</td>"));
                     line.append($("<td>" + value.message + "</td>"));
+                    line.append($("<td>Abort(500)</td>"));
 
                     list.append(line);
                 })
@@ -596,6 +642,7 @@
                     line.append($("<td>" + value.worstThroughout + "</td>"));
                     line.append($("<td>" + value.timestamp + "</td>"));
                     line.append($("<td>" + value.message + "</td>"));
+                    line.append($("<td>Delay(20s)</td>"));
 
                     list.append(line);
                 })

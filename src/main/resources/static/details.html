@@ -35,7 +35,7 @@
                 <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="http://localhost:8089"  target="_blank">Loader</a>
+                <a class="nav-link" href="http://localhost:8089" target="_blank">Loader</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="http://localhost:31576">Statistic</a>
@@ -228,6 +228,22 @@
                     </div>
                 </div>
 
+                <h3 class="pt-5">注入记录</h3>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">探测ID</th>
+                        <th scope="col">注入ID</th>
+                        <th scope="col">注入位置</th>
+                        <th scope="col">时间</th>
+                        <th scope="col">是否正常</th>
+                        <th scope="col">调用链ID</th>
+                    </tr>
+                    </thead>
+                    <tbody id="injectList">
+                    </tbody>
+                </table>
+
                 <h3 class="pt-5">测试结果-超时模式</h3>
                 <table class="table">
                     <thead>
@@ -329,6 +345,7 @@
     draw_sunburst();
     draw_timechart();
     refreshSummary();
+    refreshInjectList();
     refreshTimeoutList();
     refreshBulkhead();
     refreshRetry();
@@ -504,6 +521,28 @@
                     line.append("<span >" + value.retryTime + "</span>");
                     list.append(line);
                 });
+            }
+        });
+    }
+
+    function refreshInjectList() {
+        $.ajax({
+            url: '/details/' + getUrlParam("historyId") + '/injectResults',
+            success: function (data) {
+                data = data.data;
+                var list = $("#injectList").empty();
+                data.forEach(function (value) {
+                    // 创建列表行
+                    var line = $("<tr></tr>");
+                    line.append($("<td>" + value.id + "</td>"));
+                    line.append($("<td>" + value.injectId + "</td>"));
+                    line.append($("<td>" + value.ip + "</td>"));
+                    line.append($("<td>" + value.timestamp + "</td>"));
+                    line.append($("<td>" + value.normal + "</td>"));
+                    line.append($("<td>" + value.traceID + "</td>"));
+
+                    list.append(line);
+                })
             }
         });
     }

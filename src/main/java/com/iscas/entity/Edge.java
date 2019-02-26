@@ -34,4 +34,16 @@ public class Edge {
     public void setValue(String value) {
         this.value = value;
     }
+
+    @Override
+    public int hashCode() {
+        return (srcName + tarName).hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Edge))
+            return false;
+        return this.hashCode() == obj.hashCode();
+    }
 }

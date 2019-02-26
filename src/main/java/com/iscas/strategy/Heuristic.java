@@ -42,7 +42,7 @@ public class Heuristic {
     public Heuristic(Configuration configuration, SimpMessagingTemplate simpMessagingTemplate, RestTemplate restTemplate,
                      DetectResultDAO detectResultDAO, CircuitBreakerResultDAO circuitBreakerResultDAO,
                      BulkHeadResultDAO bulkHeadResultDAO, RetryResultDAO retryResultDAO,
-                     TimeoutResultDAO timeoutResultDAO, SummaryDAO summaryDAO) {
+                     TimeoutResultDAO timeoutResultDAO, SummaryDAO summaryDAO, InjectResultDAO injectResultDAO) {
         this.configuration = configuration;
         this.logPusher = simpMessagingTemplate;
         this.restTemplate = restTemplate;
@@ -52,6 +52,7 @@ public class Heuristic {
         this.retryResultDAO = retryResultDAO;
         this.timeoutResultDAO = timeoutResultDAO;
         this.summaryDAO = summaryDAO;
+        this.injectResultDAO = injectResultDAO;
     }
 
     // configuration
@@ -65,10 +66,11 @@ public class Heuristic {
     private volatile List<Trace> currentTracePool;
     private volatile Set<String> currentUrls;
     private volatile List<String[]> IPS;
-    private String[] currentIP;
+    private volatile String[] currentIP;
     private List<Fault> currentFaults;
     private int injectTimes;
     private List<DetectResult> rs;
+    private List<InjectResult> irs;
     private volatile List<TimeoutResult> tors;
     private volatile List<CircuitBreakResult> cbrs;
     private volatile List<RetryResult> rrs;
@@ -87,7 +89,7 @@ public class Heuristic {
     private RetryResultDAO retryResultDAO;
     private TimeoutResultDAO timeoutResultDAO;
     private SummaryDAO summaryDAO;
-
+    private InjectResultDAO injectResultDAO;
 
     public void run() {
         pushLog("自动探测流程开始");
@@ -160,6 +162,7 @@ public class Heuristic {
         this.cbrs = new ArrayList<>();
         this.bhrs = new ArrayList<>();
         this.rs = new ArrayList<>();
+        this.irs = new ArrayList<>();
         this.executedIPS = new HashSet<>();
         this.failedIPS = new HashSet<>();
         this.stop = false;
@@ -242,11 +245,15 @@ public class Heuristic {
                     this.log("更新完毕，删除故障");
                     deleteFaults();
                     this.log("删除故障完毕");
+
+                    // 记录本次注入的测试结果
+                    generateInjectResult(true);
                 }
                 // 分析
                 else {
                     this.rs.add(new DetectResult(this.id, this.injectTimes, failedAssertion.toString(), Time.getCurTimeStr()));
                     this.failedIPS.add(token);
+                    generateInjectResult(false);
 
                     this.log("删除故障");
                     deleteFaults();
@@ -257,6 +264,15 @@ public class Heuristic {
             }
             this.log("对当前IPS探测结束");
         }
+    }
+
+    private void generateInjectResult(boolean success) {
+        String ip = StringUtils.join(this.currentIP, ',');
+        String traceID = "";
+        if (this.currentTracePool.size() > 0)
+            traceID = currentTracePool.get(currentTracePool.size() - 1).getSpan().getTraceId();
+        InjectResult ir = new InjectResult(this.id, this.injectTimes, ip, Time.getCurTimeStr(), success, traceID);
+        this.irs.add(ir);
     }
 
     private void sampleTraces() throws InterruptedException {
@@ -367,29 +383,28 @@ public class Heuristic {
         this.log("开始超时模式分析");
         analysisTimeout();
         this.log("超时模式分析结束");
-        if (stop)
-            return;
-        this.log("开始重试模式分析");
-        analysisRery();
-        this.log("重试模式分析结束");
-        if (stop)
-            return;
-        this.log("开始船舱模式分析");
-        analysisBulkHead();
-        this.log("船舱模式分析结束");
-        if (stop)
-            return;
-        this.log("开始熔断模式分析");
-        analysisCircuitBreaker();
-        this.log("熔断模式分析结束");
+//        if (stop)
+//            return;
+//        this.log("开始重试模式分析");
+//        analysisRery();
+//        this.log("重试模式分析结束");
+//        if (stop)
+//            return;
+//        this.log("开始船舱模式分析");
+//        analysisBulkHead();
+//        this.log("船舱模式分析结束");
+//        if (stop)
+//            return;
+//        this.log("开始熔断模式分析");
+//        analysisCircuitBreaker();
+//        this.log("熔断模式分析结束");
     }
 
-    private void analysisTimeout() throws InterruptedException {
-        TraceTracker tracker = new Jaeger(this.restTemplate);
+    private Map<Pair<String, String>, Long> detectTimeout() {
 
-        // 注入delay故障
-        this.log("注入20秒超时");
-        this.injectDelay(20);
+        Map<Pair<String, String>, Long> result = new HashMap<>();
+
+        TraceTracker tracker = new Jaeger(this.restTemplate);
 
         // 参数
         long duration = this.configuration.getTimeoutDetectionDuration();
@@ -401,17 +416,11 @@ public class Heuristic {
         this.log("参数：持续" + duration + "秒，间隔为" + interval + "秒，抽样数量为" + sampleBatch + "条");
         // 探测
         for (long currentTime = Time.getCurTimeStampMs(); currentTime < endTime; currentTime = Time.getCurTimeStampMs()) {
-            // 暂停一段时间
-            if (!debug) {
-                this.log("等待" + interval + "秒");
-                Thread.sleep((interval) * 1000);
-
-            }
             this.log("抽样");
             List<Span> roots = tracker.sampleErr(sampleBatch, interval);
 
             // 抽样
-            this.log("统计并计算结果");
+//            this.log("统计并计算结果");
             for (Span root : roots) {
                 // 如果不是目标接口产生的，则跳过
                 if (!this.currentUrls.contains(root.getUrl()))
@@ -425,24 +434,105 @@ public class Heuristic {
                     for (Span childSpan : fatherSpan.getChildren()) {
                         stack.push(childSpan);
 
-                        // 生成测试结果
-                        if (fatherSpan.getDuration() < childSpan.getDuration()) {
-                            this.log("探测到异常");
-                            TimeoutResult rs = new TimeoutResult(this.id, this.injectTimes,
-                                    getServiceName(fatherSpan.getService()),
-                                    getServiceName(childSpan.getService())
-                                    , fatherSpan.getDuration(),
-                                    "上游服务阈值（" + fatherSpan.getDuration() + "）小于下游响应时间（" + childSpan.getDuration() + "）", Time.getCurTimeStr());
-                            this.tors.add(rs);
-                        }
+                        Pair<String, String> servicePair = new Pair<>(fatherSpan.getService(), childSpan.getService());
+                        result.put(servicePair, childSpan.getDuration());
+
+//                        // 生成测试结果
+//                        if (fatherSpan.getDuration() < childSpan.getDuration()) {
+//                            this.log("探测到异常");
+//                            TimeoutResult rs = new TimeoutResult(this.id, this.injectTimes,
+//                                    getServiceName(fatherSpan.getService()),
+//                                    getServiceName(childSpan.getService())
+//                                    , fatherSpan.getDuration(),
+//                                    "上游服务阈值（" + fatherSpan.getDuration() + "）小于下游响应时间（" + childSpan.getDuration() + "）", Time.getCurTimeStr());
+//                            this.tors.add(rs);
+//                        }
                     }
                 }
             }
-            // 测试环境只测试一轮抽样
-            if (debug)
-                break;
-
         }
+        return result;
+    }
+
+    private void analysisTimeout() throws InterruptedException {
+//        TraceTracker tracker = new Jaeger(this.restTemplate);
+
+        // 探测正常响应时间
+        this.log("抽样正常响应时间");
+        Map<Pair<String, String>, Long> times1 = detectTimeout();
+
+        // 注入delay故障
+        this.log("注入20秒超时");
+        this.injectDelay(20);
+
+        // 抽样异常响应时间
+        this.log("抽样异常响应时间");
+        Map<Pair<String, String>, Long> times2 = detectTimeout();
+
+        for (Pair<String, String> servicePair : times2.keySet()) {
+            long time1 = times1.getOrDefault(servicePair, 0L);
+            long time2 = times2.get(servicePair);
+            if (time2 - time1 > 1000) {
+                TimeoutResult rs = new TimeoutResult(this.id, this.injectTimes,
+                        getServiceName(servicePair.getKey()),
+                        getServiceName(servicePair.getValue())
+                        , time2, "正常响应时间为" + time1, Time.getCurTimeStr());
+                this.tors.add(rs);
+            }
+        }
+
+//        // 参数
+//        long duration = this.configuration.getTimeoutDetectionDuration();
+//        int interval = this.configuration.getTimeoutSampleInterval();
+//        int sampleBatch = this.configuration.getTimeoutSampleBatch();
+//        long startTime = Time.getCurTimeStampMs();
+//        long endTime = startTime + duration * 1000;
+//
+//        this.log("参数：持续" + duration + "秒，间隔为" + interval + "秒，抽样数量为" + sampleBatch + "条");
+//        // 探测
+//        for (long currentTime = Time.getCurTimeStampMs(); currentTime < endTime; currentTime = Time.getCurTimeStampMs()) {
+//            // 暂停一段时间
+//            if (!debug) {
+//                this.log("等待" + interval + "秒");
+//                Thread.sleep((interval) * 1000);
+//
+//            }
+//            this.log("抽样");
+//            List<Span> roots = tracker.sampleErr(sampleBatch, interval);
+//
+//            // 抽样
+//            this.log("统计并计算结果");
+//            for (Span root : roots) {
+//                // 如果不是目标接口产生的，则跳过
+//                if (!this.currentUrls.contains(root.getUrl()))
+//                    continue;
+//
+//                // DFS
+//                LinkedList<Span> stack = new LinkedList<>();
+//                stack.push(root);
+//                while (!stack.isEmpty()) {
+//                    Span fatherSpan = stack.pop();
+//                    for (Span childSpan : fatherSpan.getChildren()) {
+//                        stack.push(childSpan);
+//
+//                        // 生成测试结果
+//                        if (fatherSpan.getDuration() < childSpan.getDuration()) {
+//                            this.log("探测到异常");
+//                            TimeoutResult rs = new TimeoutResult(this.id, this.injectTimes,
+//                                    getServiceName(fatherSpan.getService()),
+//                                    getServiceName(childSpan.getService())
+//                                    , fatherSpan.getDuration(),
+//                                    "上游服务阈值（" + fatherSpan.getDuration() + "）小于下游响应时间（" + childSpan.getDuration() + "）", Time.getCurTimeStr());
+//                            this.tors.add(rs);
+//                        }
+//                    }
+//                }
+//            }
+//            // 测试环境只测试一轮抽样
+//            if (debug)
+//                break;
+//
+//        }
 
 //        // 诊断
 //        System.out.println("诊断");
@@ -934,6 +1024,9 @@ public class Heuristic {
         // 保存所有结果
         pushLog("保存探测结果");
         this.detectResultDAO.saveAll(this.rs);
+        // 注入记录
+        pushLog("保存注入记录");
+        this.injectResultDAO.saveAll(this.irs);
         pushLog("保存超时结果");
         this.timeoutResultDAO.saveAll(this.tors);
         pushLog("保存重试结果");
@@ -978,7 +1071,7 @@ public class Heuristic {
             }
         }
 
-        return new Trace(new String[]{url}, services.toArray(new String[0]));
+        return new Trace(new String[]{url}, services.toArray(new String[0]), root);
     }
 
     private String getServiceName(String complexName) {
@@ -1197,5 +1290,9 @@ public class Heuristic {
 
     public String getId() {
         return id;
+    }
+
+    public String[] getCurrentIP() {
+        return currentIP;
     }
 }

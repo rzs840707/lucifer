@@ -93,6 +93,7 @@ public class Jaeger implements TraceTracker {
 //        System.out.println("共" + traces.size() + "条trace需要反序列化");
         for (JsonElement trace : traces) {
 //            System.out.println("反序列化trace:" + trace.getAsJsonObject().get("traceID").getAsString());
+            String traceID = trace.getAsJsonObject().get("traceID").getAsString();
             JsonArray spans = trace.getAsJsonObject().getAsJsonArray("spans");
 
             Span root = null;
@@ -139,7 +140,7 @@ public class Jaeger implements TraceTracker {
                             break;
                     }
                 }
-                Span tmp = new Span(serviceName, url, method, code, duration, timestamp, error, kind);
+                Span tmp = new Span(traceID, serviceName, url, method, code, duration, timestamp, error, kind);
                 spanMap.put(spanId, tmp);
 //                System.out.println(spanId + " " + tmp);
 
