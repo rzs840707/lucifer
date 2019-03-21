@@ -19,6 +19,7 @@ import com.iscas.service.Telemetry;
 import com.iscas.service.TraceTracker;
 import com.iscas.util.Cmd;
 import com.iscas.util.FileUtil;
+import com.iscas.util.Kmp;
 import com.iscas.util.Time;
 import javafx.util.Pair;
 import org.apache.commons.lang3.ArrayUtils;
@@ -383,21 +384,21 @@ public class Heuristic {
         this.log("开始超时模式分析");
         analysisTimeout();
         this.log("超时模式分析结束");
-//        if (stop)
-//            return;
-//        this.log("开始重试模式分析");
-//        analysisRery();
-//        this.log("重试模式分析结束");
-//        if (stop)
-//            return;
-//        this.log("开始船舱模式分析");
-//        analysisBulkHead();
-//        this.log("船舱模式分析结束");
-//        if (stop)
-//            return;
-//        this.log("开始熔断模式分析");
-//        analysisCircuitBreaker();
-//        this.log("熔断模式分析结束");
+        if (stop)
+            return;
+        this.log("开始重试模式分析");
+        analysisRery();
+        this.log("重试模式分析结束");
+        if (stop)
+            return;
+        this.log("开始船舱模式分析");
+        analysisBulkHead();
+        this.log("船舱模式分析结束");
+        if (stop)
+            return;
+        this.log("开始熔断模式分析");
+        analysisCircuitBreaker();
+        this.log("熔断模式分析结束");
     }
 
     private Map<Pair<String, String>, Long> detectTimeout() {
@@ -1094,10 +1095,16 @@ public class Heuristic {
             // 过滤失败的故障注入点
             boolean failed = false;
             for (String failedIP : this.failedIPS)
-                if (token.contains(failedIP)) {
+                if (Kmp.KMP(token, failedIP) == 0) {
                     failed = true;
                     break;
                 }
+//            boolean failed = false;
+//            for (String failedIP : this.failedIPS)
+//                if (token.contains(failedIP)) {
+//                    failed = true;
+//                    break;
+//                }
             if (!failed)
                 r.add(IP);
             else
